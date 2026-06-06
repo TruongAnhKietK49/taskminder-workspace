@@ -1,106 +1,41 @@
-# =========================
-# Dependencies
-# =========================
-node_modules/
-.pnpm-store/
+# dependencies
+node_modules
+.pnpm-store
 
-# =========================
-# Build outputs
-# =========================
-dist/
-build/
-out/
-.next/
-.vite/
-.cache/
-.tmp/
-temp/
+# build outputs
+dist
+build
+coverage
+.next
+.vite
 
-# NestJS / TypeScript
-*.tsbuildinfo
-
-# =========================
-# Environment files
-# =========================
+# env
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-apps/api/.env
-apps/api/.env.local
-apps/web/.env
-apps/web/.env.local
-
-# Keep example env files
-!.env.example
-!apps/api/.env.example
-!apps/web/.env.example
-
-# =========================
-# Logs
-# =========================
-logs/
+# logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
+yarn-debug.log*
 
-# =========================
-# Test / coverage
-# =========================
-coverage/
-.nyc_output/
-
-# =========================
-# Prisma
-# =========================
-# Do NOT ignore prisma/schema.prisma or prisma/migrations
-apps/api/src/generated/prisma/
-
-# =========================
-# Uploads / local files
-# =========================
-uploads/
-apps/api/uploads/
-apps/api/storage/
-
-# Keep folder structure if needed
-!uploads/.gitkeep
-!apps/api/uploads/.gitkeep
-!apps/api/storage/.gitkeep
-
-# =========================
-# IDE / Editor
-# =========================
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.example.json
-
-.idea/
-*.swp
-*.swo
-
-# =========================
-# OS files
-# =========================
+# OS / editor
 .DS_Store
 Thumbs.db
-desktop.ini
+.vscode/*
+!.vscode/extensions.json
+.idea
 
-# =========================
-# Docker local volumes / database dumps
-# =========================
-docker-data/
-postgres-data/
-redis-data/
-*.dump
-*.sql.gz
+# database / docker
+*.sqlite
+*.db
 
-# =========================
-# Misc
-# =========================
-*.pem
-*.key
+# prisma generated artifacts if needed
+apps/api/src/generated/prisma/**/*.map
+
+# temp
+.tmp
+.cache
