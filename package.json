@@ -1,0 +1,31 @@
+{
+  "name": "taskminder-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Project collaboration platform with RBAC, workspace/project/task management, realtime chat, notifications and reminders.",
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "dev:api": "pnpm --dir apps/api start:dev",
+    "build:web": "pnpm --dir apps/web build",
+    "build:api": "pnpm --dir apps/api build",
+    "lint:web": "pnpm --dir apps/web lint",
+    "lint:api": "pnpm --dir apps/api lint",
+    "typecheck:web": "pnpm --dir apps/web tsc -b",
+    "typecheck:api": "pnpm --dir apps/api tsc --noEmit",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --dir apps/api exec prisma migrate dev",
+    "db:generate": "pnpm --dir apps/api exec prisma generate",
+    "db:studio": "pnpm --dir apps/api exec prisma studio"
+  },
+  "keywords": [
+    "task-management",
+    "workspace",
+    "rbac",
+    "react",
+    "nestjs",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "MIT"
+}
