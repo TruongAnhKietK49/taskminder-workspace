@@ -1,117 +1,22 @@
-import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import type { ChangeEvent, FormEvent } from "react";
+import { Link } from "react-router-dom";
+
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
-import { useAuthStore } from "@/features/auth/stores/auth.store";
-
-type RegisterFormState = {
-  fullName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-};
-
-const initialFormState: RegisterFormState = {
-  fullName: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-};
+import { useRegister } from "@/features/auth/hooks/useRegister";
 
 export function RegisterPage() {
-  const navigate = useNavigate();
-
-  const register = useAuthStore((state) => state.register);
-  const status = useAuthStore((state) => state.status);
-  const authError = useAuthStore((state) => state.error);
-  const clearError = useAuthStore((state) => state.clearError);
-
-  const [form, setForm] = useState<RegisterFormState>(initialFormState);
-  const [validationError, setValidationError] = useState<string | null>(null);
-
-  const isSubmitting = status === "loading";
-
-  useEffect(() => {
-    clearError();
-
-    return () => {
-      clearError();
-    };
-  }, [clearError]);
+  const { form, error, isSubmitting, updateField, submit } = useRegister();
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const { name, value } = event.target;
+    const field = event.target.name as keyof typeof form;
 
-    setForm((currentForm) => ({
-      ...currentForm,
-      [name]: value,
-    }));
-
-    if (validationError) {
-      setValidationError(null);
-    }
-
-    if (authError) {
-      clearError();
-    }
+    updateField(field, event.target.value);
   }
 
-  function validateForm(): string | null {
-    const normalizedName = form.fullName.trim();
-    const normalizedEmail = form.email.trim();
-
-    if (normalizedName.length < 2) {
-      return "Họ tên phải có ít nhất 2 ký tự.";
-    }
-
-    if (!normalizedEmail) {
-      return "Vui lòng nhập email.";
-    }
-
-    if (!normalizedEmail.includes("@")) {
-      return "Email không hợp lệ.";
-    }
-
-    if (form.password.length < 8) {
-      return "Mật khẩu phải có ít nhất 8 ký tự.";
-    }
-
-    if (form.password.length > 72) {
-      return "Mật khẩu không được vượt quá 72 ký tự.";
-    }
-
-    if (form.password !== form.confirmPassword) {
-      return "Mật khẩu xác nhận không khớp.";
-    }
-
-    return null;
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const errorMessage = validateForm();
-
-    if (errorMessage) {
-      setValidationError(errorMessage);
-      return;
-    }
-
-    try {
-      await register({
-        fullName: form.fullName.trim(),
-        email: form.email.trim(),
-        password: form.password,
-      });
-
-      navigate(ROUTE_PATHS.DASHBOARD, {
-        replace: true,
-      });
-    } catch {
-      // Error đã được Auth Store xử lý.
-    }
+    void submit();
   }
-
-  const displayedError = validationError ?? authError;
 
   return (
     <section className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur">
@@ -197,12 +102,13 @@ export function RegisterPage() {
           />
         </div>
 
-        {displayedError && (
+        {error && (
           <div
             role="alert"
+            aria-live="polite"
             className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200"
           >
-            {displayedError}
+            {error}
           </div>
         )}
 
@@ -213,8 +119,12 @@ export function RegisterPage() {
         >
           {isSubmitting ? (
             <>
-              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-slate-950" />
-              Đang tạo tài khoản...
+              <span
+                aria-hidden="true"
+                className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-slate-950"
+              />
+
+              <span>Đang tạo tài khoản...</span>
             </>
           ) : (
             "Register"
@@ -226,7 +136,7 @@ export function RegisterPage() {
         Already have an account?{" "}
         <Link
           to={ROUTE_PATHS.LOGIN}
-          className="font-medium text-white underline"
+          className="font-medium text-white underline underline-offset-4 hover:text-slate-200"
         >
           Login
         </Link>
