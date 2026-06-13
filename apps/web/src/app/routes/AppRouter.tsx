@@ -1,6 +1,8 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import { AuthLayout } from "@/app/layouts/AuthLayout";
 import { DashboardLayout } from "@/app/layouts/DashboardLayout";
+import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
+import { PublicOnlyRoute } from "@/app/routes/PublicOnlyRoute";
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 
 import { LoginPage } from "@/features/auth/pages/LoginPage";
@@ -21,7 +23,11 @@ export const appRouter = createBrowserRouter([
     element: <Navigate to={ROUTE_PATHS.DASHBOARD} replace />,
   },
   {
-    element: <AuthLayout />,
+    element: (
+      <PublicOnlyRoute>
+        <AuthLayout />
+      </PublicOnlyRoute>
+    ),
     children: [
       {
         path: ROUTE_PATHS.LOGIN,
@@ -34,7 +40,11 @@ export const appRouter = createBrowserRouter([
     ],
   },
   {
-    element: <DashboardLayout />,
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         path: ROUTE_PATHS.DASHBOARD,
