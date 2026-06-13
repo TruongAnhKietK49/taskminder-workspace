@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { cn } from "@/shared/lib/cn";
+import { ProfileDropdown } from "@/features/auth/components/ProfileDropdown";
 
 const navigationItems = [
   {
@@ -78,12 +79,7 @@ export function DashboardLayout() {
               <h1 className="text-lg font-semibold">TaskMinder Workspace</h1>
             </div>
 
-            <button
-              type="button"
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-100"
-            >
-              User Menu
-            </button>
+            <ProfileDropdown />
           </div>
         </header>
 
