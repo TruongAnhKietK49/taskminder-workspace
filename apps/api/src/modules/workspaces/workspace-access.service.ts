@@ -9,10 +9,36 @@ import type {
   WorkspaceMemberTarget,
   WorkspaceMembershipAccess,
 } from './types/workspace-access.type';
+import { PermissionService } from '../../common/permissions/permission.service';
+import { Permission } from '../../common/permissions/permission.enum';
 
 @Injectable()
 export class WorkspaceAccessService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly permissionService: PermissionService,
+  ) {}
+
+  async assertPermission(
+    workspaceId: string,
+    userId: string,
+    permission: Permission,
+  ): Promise<WorkspaceMembershipAccess> {
+    const membership = await this.getMembership(workspaceId, userId);
+
+    const allowed = this.permissionService.hasPermission(
+      membership.role,
+      permission,
+    );
+
+    if (!allowed) {
+      throw new ForbiddenException(
+        'You do not have permission to perform this action',
+      );
+    }
+
+    return membership;
+  }
 
   async getMembership(
     workspaceId: string,
@@ -51,36 +77,22 @@ export class WorkspaceAccessService {
     workspaceId: string,
     userId: string,
   ): Promise<WorkspaceMembershipAccess> {
-    const membership = await this.getMembership(workspaceId, userId);
-
-    if (
-      membership.role !== WorkspaceRole.OWNER &&
-      membership.role !== WorkspaceRole.ADMIN
-    ) {
-      throw new ForbiddenException(
-        'You do not have permission to update this workspace',
-      );
-    }
-
-    return membership;
+    return this.assertPermission(
+      workspaceId,
+      userId,
+      Permission.WORKSPACE_MANAGE,
+    );
   }
 
   async assertCanManageMembers(
     workspaceId: string,
     userId: string,
   ): Promise<WorkspaceMembershipAccess> {
-    const membership = await this.getMembership(workspaceId, userId);
-
-    if (
-      membership.role !== WorkspaceRole.OWNER &&
-      membership.role !== WorkspaceRole.ADMIN
-    ) {
-      throw new ForbiddenException(
-        'You do not have permission to manage workspace members',
-      );
-    }
-
-    return membership;
+    return this.assertPermission(
+      workspaceId,
+      userId,
+      Permission.WORKSPACE_MEMBER_MANAGE,
+    );
   }
 
   async assertOwner(
