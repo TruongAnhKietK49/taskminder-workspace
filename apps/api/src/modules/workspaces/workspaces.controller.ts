@@ -21,12 +21,16 @@ import { WorkspaceMembersService } from './workspace-members.service';
 import { AddWorkspaceMemberDto } from './dto/add-workspace-member.dto';
 import { UpdateWorkspaceMemberRoleDto } from './dto/update-workspace-member-role.dto';
 
+import { InviteWorkspaceMemberDto } from './dto/invite-workspace-member.dto';
+import { WorkspaceInvitationsService } from './workspace-invitations.service';
+
 @Controller('workspaces')
 @UseGuards(JwtAuthGuard)
 export class WorkspacesController {
   constructor(
     private readonly workspacesService: WorkspacesService,
     private readonly workspaceMembersService: WorkspaceMembersService,
+    private readonly workspaceInvitationsService: WorkspaceInvitationsService,
   ) {}
 
   @Post()
@@ -192,6 +196,46 @@ export class WorkspacesController {
       success: true,
       message: 'Workspace member removed successfully',
       data: null,
+    };
+  }
+
+  @Get(':workspaceId/invitations')
+  async findInvitations(
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const invitations = await this.workspaceInvitationsService.findAll(
+      workspaceId,
+      user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Workspace invitations retrieved successfully',
+      data: {
+        invitations,
+      },
+    };
+  }
+
+  @Post(':workspaceId/invitations')
+  async inviteMember(
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: InviteWorkspaceMemberDto,
+  ) {
+    const invitation = await this.workspaceInvitationsService.create(
+      workspaceId,
+      user.id,
+      dto,
+    );
+
+    return {
+      success: true,
+      message: 'Workspace invitation created successfully',
+      data: {
+        invitation,
+      },
     };
   }
 }
