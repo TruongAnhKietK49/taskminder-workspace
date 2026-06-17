@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 
 import {
   PROJECT_DESCRIPTION_MAX_LENGTH,
@@ -20,6 +20,8 @@ type ProjectFormModalProps = {
   onSubmit: (payload: CreateProjectPayload | UpdateProjectPayload) => void;
 };
 
+type ProjectFormModalContentProps = Omit<ProjectFormModalProps, "open">;
+
 export function ProjectFormModal({
   open,
   project,
@@ -27,29 +29,38 @@ export function ProjectFormModal({
   onClose,
   onSubmit,
 }: ProjectFormModalProps) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <ProjectFormModalContent
+      key={project?.id ?? "create-project"}
+      project={project}
+      isSubmitting={isSubmitting}
+      onClose={onClose}
+      onSubmit={onSubmit}
+    />
+  );
+}
+
+function ProjectFormModalContent({
+  project,
+  isSubmitting = false,
+  onClose,
+  onSubmit,
+}: ProjectFormModalContentProps) {
   const isEditMode = Boolean(project);
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<ProjectStatus>("PLANNING");
+  const [name, setName] = useState(project?.name ?? "");
+  const [description, setDescription] = useState(project?.description ?? "");
+  const [status, setStatus] = useState<ProjectStatus>(
+    project?.status ?? "PLANNING",
+  );
 
   const title = useMemo(() => {
     return isEditMode ? "Edit project" : "Create project";
   }, [isEditMode]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    setName(project?.name ?? "");
-    setDescription(project?.description ?? "");
-    setStatus(project?.status ?? "PLANNING");
-  }, [open, project]);
-
-  if (!open) {
-    return null;
-  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -104,7 +115,8 @@ export function ProjectFormModal({
               onChange={(event) => setName(event.target.value)}
               maxLength={PROJECT_NAME_MAX_LENGTH}
               placeholder="Ví dụ: TaskMinder Web App"
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              disabled={isSubmitting}
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
             />
 
             <div className="mt-1 flex justify-between text-xs text-slate-500">
@@ -130,7 +142,8 @@ export function ProjectFormModal({
               maxLength={PROJECT_DESCRIPTION_MAX_LENGTH}
               rows={5}
               placeholder="Mô tả mục tiêu, phạm vi hoặc ghi chú của project..."
-              className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              disabled={isSubmitting}
+              className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
             />
 
             <div className="mt-1 flex justify-end text-xs text-slate-500">
@@ -155,7 +168,8 @@ export function ProjectFormModal({
                 onChange={(event) =>
                   setStatus(event.target.value as ProjectStatus)
                 }
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                disabled={isSubmitting}
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
               >
                 {PROJECT_STATUS_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>

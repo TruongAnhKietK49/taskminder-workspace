@@ -42,7 +42,10 @@ export function ProjectsPage() {
   const updateProjectMutation = useUpdateProject();
   const archiveProjectMutation = useArchiveProject();
 
-  const projects = projectsQuery.data ?? [];
+  const projects = useMemo(
+    () => projectsQuery.data ?? [],
+    [projectsQuery.data],
+  );
 
   const filteredProjects = useMemo(() => {
     if (statusFilter === "ALL") {
