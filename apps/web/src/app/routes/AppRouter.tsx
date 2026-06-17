@@ -16,6 +16,7 @@ import { ReportsPage } from "@/features/reports/pages/ReportsPage";
 import { SettingsPage } from "@/features/settings/pages/SettingsPage";
 import { TasksPage } from "@/features/tasks/pages/TasksPage";
 import { WorkspacesPage } from "@/features/workspaces/pages/WorkspacesPage";
+import { AcceptWorkspaceInvitationPage } from "@/features/workspaces/pages/AcceptWorkspaceInvitaitonPage";
 
 export const appRouter = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ export const appRouter = createBrowserRouter([
       {
         path: ROUTE_PATHS.REGISTER,
         element: <RegisterPage />,
+      },
+      {
+        path: ROUTE_PATHS.WORKSPACE_INVITATION_ACCEPT,
+        element: <AcceptWorkspaceInvitationPage />,
       },
     ],
   },

@@ -4,6 +4,7 @@ export const ROUTE_PATHS = {
   REGISTER: "/register",
   DASHBOARD: "/dashboard",
   WORKSPACES: "/workspaces",
+  WORKSPACE_INVITATION_ACCEPT: "/workspace-invitations/:token",
   PROJECTS: "/projects",
   MEMBERS: "/members",
   TASKS: "/tasks",

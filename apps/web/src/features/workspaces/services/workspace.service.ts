@@ -8,6 +8,8 @@ import type {
   WorkspaceBase,
   WorkspaceMember,
   WorkspaceRole,
+  InviteWorkspaceMemberPayload,
+  WorkspaceInvitation,
 } from "@/features/workspaces/types/workspace.types";
 
 type WorkspacesResponseData = {
@@ -24,6 +26,14 @@ type WorkspaceMembersResponseData = {
 
 type WorkspaceMemberResponseData = {
   member: WorkspaceMember;
+};
+
+type WorkspaceInvitationsResponseData = {
+  invitations: WorkspaceInvitation[];
+};
+
+type WorkspaceInvitationResponseData = {
+  invitation: WorkspaceInvitation;
 };
 
 export const workspaceService = {
@@ -68,6 +78,41 @@ export const workspaceService = {
     >(`/workspaces/${workspaceId}/members`, payload);
 
     return response.data.data.member;
+  },
+
+  async getInvitations(workspaceId: string) {
+    const response = await apiClient.get<
+      ApiResponse<WorkspaceInvitationsResponseData>
+    >(`/workspaces/${workspaceId}/invitations`);
+
+    return response.data.data.invitations;
+  },
+
+  async inviteMember(
+    workspaceId: string,
+    payload: InviteWorkspaceMemberPayload,
+  ) {
+    const response = await apiClient.post<
+      ApiResponse<WorkspaceInvitationResponseData>
+    >(`/workspaces/${workspaceId}/invitations`, payload);
+
+    return response.data.data.invitation;
+  },
+
+  async acceptInvitation(token: string) {
+    const response = await apiClient.post<
+      ApiResponse<WorkspaceMemberResponseData>
+    >(`/workspace-invitations/${token}/accept`);
+
+    return response.data.data.member;
+  },
+
+  async rejectInvitation(token: string) {
+    const response = await apiClient.post<
+      ApiResponse<WorkspaceInvitationResponseData>
+    >(`/workspace-invitations/${token}/reject`);
+
+    return response.data.data.invitation;
   },
 
   async updateMemberRole(

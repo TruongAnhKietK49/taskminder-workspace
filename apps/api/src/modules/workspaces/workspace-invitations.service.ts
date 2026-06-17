@@ -48,6 +48,7 @@ const WORKSPACE_INVITATION_SELECT = {
 
 const WORKSPACE_MEMBER_SELECT = {
   id: true,
+  workspaceId: true,
   role: true,
   joinedAt: true,
   updatedAt: true,
