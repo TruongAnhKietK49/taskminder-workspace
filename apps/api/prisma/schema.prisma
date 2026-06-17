@@ -20,6 +20,13 @@ enum WorkspaceRole {
   MEMBER
 }
 
+enum WorkspaceInvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
 enum ProjectStatus {
   PLANNING
   ACTIVE
@@ -39,6 +46,9 @@ model User {
   sessions         AuthSession[]
   ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
   workspaceMembers WorkspaceMember[]
+
+  sentWorkspaceInvitations     WorkspaceInvitation[] @relation("WorkspaceInvitationInvitedBy")
+  acceptedWorkspaceInvitations WorkspaceInvitation[] @relation("WorkspaceInvitationAcceptedBy")
 
   createdProjects Project[]       @relation("ProjectCreatedBy")
   projectMembers  ProjectMember[]
@@ -79,6 +89,8 @@ model Workspace {
   members  WorkspaceMember[]
   projects Project[]
 
+  invitations WorkspaceInvitation[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -102,6 +114,37 @@ model WorkspaceMember {
   @@index([userId])
   @@index([workspaceId, role])
   @@map("workspace_members")
+}
+
+model WorkspaceInvitation {
+  id          String        @id @default(uuid()) @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  email       String
+  role        WorkspaceRole @default(MEMBER)
+
+  token  String                    @unique
+  status WorkspaceInvitationStatus @default(PENDING)
+
+  invitedById String @map("invited_by_id") @db.Uuid
+  acceptedById String? @map("accepted_by_id") @db.Uuid
+
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  rejectedAt  DateTime? @map("rejected_at")
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy  User      @relation("WorkspaceInvitationInvitedBy", fields: [invitedById], references: [id], onDelete: Restrict)
+  acceptedBy User?     @relation("WorkspaceInvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([workspaceId, email, status])
+  @@index([workspaceId])
+  @@index([email])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("workspace_invitations")
 }
 
 model Project {
