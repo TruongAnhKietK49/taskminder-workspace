@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ProjectStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ProjectAccessService } from './project-access.service';
 
 const PROJECT_SELECT = {
   id: true,
@@ -37,7 +37,7 @@ type ProjectWithDetails = Prisma.ProjectGetPayload<{
 export class ProjectsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly workspaceAccessService: WorkspaceAccessService,
+    private readonly projectAccessService: ProjectAccessService,
   ) {}
 
   async create(
@@ -45,7 +45,7 @@ export class ProjectsService {
     currentUserId: string,
     createProjectDto: CreateProjectDto,
   ) {
-    await this.workspaceAccessService.assertCanUpdateWorkspace(
+    await this.projectAccessService.assertCanCreateProject(
       workspaceId,
       currentUserId,
     );
@@ -53,8 +53,8 @@ export class ProjectsService {
     const normalizedName = createProjectDto.name.trim();
     const normalizedDescription = createProjectDto.description?.trim() || null;
 
-    return this.prisma.$transaction(async (transaction) => {
-      const project = await transaction.project.create({
+    const project = await this.prisma.$transaction(async (transaction) => {
+      return transaction.project.create({
         data: {
           name: normalizedName,
           description: normalizedDescription,
@@ -68,18 +68,19 @@ export class ProjectsService {
         },
         select: PROJECT_SELECT,
       });
-
-      return this.toProjectResponse(project);
     });
+
+    return this.toProjectResponse(project, true);
   }
 
   async findAll(workspaceId: string, currentUserId: string) {
-    await this.workspaceAccessService.assertMember(workspaceId, currentUserId);
+    const where = await this.projectAccessService.getVisibleProjectsWhere(
+      workspaceId,
+      currentUserId,
+    );
 
     const projects = await this.prisma.project.findMany({
-      where: {
-        workspaceId,
-      },
+      where,
       select: PROJECT_SELECT,
       orderBy: [
         {
@@ -91,15 +92,19 @@ export class ProjectsService {
       ],
     });
 
-    return projects.map((project) => this.toProjectResponse(project));
+    return projects.map((project) => this.toProjectResponse(project, true));
   }
 
   async findOne(workspaceId: string, projectId: string, currentUserId: string) {
-    await this.workspaceAccessService.assertMember(workspaceId, currentUserId);
+    await this.projectAccessService.assertCanReadProject(
+      workspaceId,
+      projectId,
+      currentUserId,
+    );
 
     const project = await this.findProjectOrThrow(workspaceId, projectId);
 
-    return this.toProjectResponse(project);
+    return this.toProjectResponse(project, true);
   }
 
   async update(
@@ -108,12 +113,11 @@ export class ProjectsService {
     currentUserId: string,
     updateProjectDto: UpdateProjectDto,
   ) {
-    await this.workspaceAccessService.assertCanUpdateWorkspace(
+    await this.projectAccessService.assertCanManageProject(
       workspaceId,
+      projectId,
       currentUserId,
     );
-
-    await this.findProjectOrThrow(workspaceId, projectId);
 
     const updateData: {
       name?: string;
@@ -141,16 +145,15 @@ export class ProjectsService {
       select: PROJECT_SELECT,
     });
 
-    return this.toProjectResponse(project);
+    return this.toProjectResponse(project, true);
   }
 
   async archive(workspaceId: string, projectId: string, currentUserId: string) {
-    await this.workspaceAccessService.assertCanUpdateWorkspace(
+    await this.projectAccessService.assertCanManageProject(
       workspaceId,
+      projectId,
       currentUserId,
     );
-
-    await this.findProjectOrThrow(workspaceId, projectId);
 
     const project = await this.prisma.project.update({
       where: {
@@ -162,7 +165,7 @@ export class ProjectsService {
       select: PROJECT_SELECT,
     });
 
-    return this.toProjectResponse(project);
+    return this.toProjectResponse(project, true);
   }
 
   private async findProjectOrThrow(workspaceId: string, projectId: string) {
@@ -181,7 +184,10 @@ export class ProjectsService {
     return project;
   }
 
-  private toProjectResponse(project: ProjectWithDetails) {
+  private toProjectResponse(
+    project: ProjectWithDetails,
+    currentUserCanRead: boolean,
+  ) {
     return {
       id: project.id,
       name: project.name,
@@ -191,6 +197,7 @@ export class ProjectsService {
       createdById: project.createdById,
       createdBy: project.createdBy,
       memberCount: project._count.members,
+      currentUserCanRead,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     };
