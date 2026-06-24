@@ -7,6 +7,7 @@ import type { Project } from "@/features/projects/types/project.types";
 type ProjectCardProps = {
   project: Project;
   workspaceId: string;
+  canManage: boolean;
   onEdit: (project: Project) => void;
   onArchive: (project: Project) => void;
 };
@@ -21,6 +22,7 @@ function formatDate(value: string) {
 
 export function ProjectCard({
   project,
+  canManage,
   onEdit,
   onArchive,
 }: ProjectCardProps) {
@@ -77,25 +79,27 @@ export function ProjectCard({
           </span>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(project)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Edit
-          </button>
-
-          {!isArchived ? (
+        {canManage ? (
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
-              onClick={() => onArchive(project)}
-              className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              onClick={() => onEdit(project)}
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Archive
+              Edit
             </button>
-          ) : null}
-        </div>
+
+            {!isArchived ? (
+              <button
+                type="button"
+                onClick={() => onArchive(project)}
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                Archive
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );

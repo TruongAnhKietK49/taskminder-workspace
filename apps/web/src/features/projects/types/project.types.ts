@@ -21,6 +21,7 @@ export type Project = {
   createdById: string;
   createdBy: ProjectCreator;
   memberCount: number;
+  currentUserCanRead: boolean;
   createdAt: string;
   updatedAt: string;
 };

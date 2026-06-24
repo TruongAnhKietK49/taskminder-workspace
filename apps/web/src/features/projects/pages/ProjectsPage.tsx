@@ -67,6 +67,10 @@ export function ProjectsPage() {
   const isSubmitting =
     createProjectMutation.isPending || updateProjectMutation.isPending;
 
+  const canManageProjects =
+    activeWorkspace?.currentUserRole === "OWNER" ||
+    activeWorkspace?.currentUserRole === "ADMIN";
+
   function handleOpenCreateModal() {
     setEditingProject(null);
     setIsFormOpen(true);
@@ -213,13 +217,15 @@ export function ProjectsPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenCreateModal}
-            className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-blue-50"
-          >
-            + Create project
-          </button>
+          {canManageProjects ? (
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-blue-50"
+            >
+              + Create project
+            </button>
+          ) : null}
         </header>
 
         <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
@@ -298,6 +304,7 @@ export function ProjectsPage() {
                   key={project.id}
                   project={project}
                   workspaceId={activeWorkspaceId}
+                  canManage={canManageProjects}
                   onEdit={handleOpenEditModal}
                   onArchive={handleArchiveProject}
                 />
@@ -318,13 +325,15 @@ export function ProjectsPage() {
                 việc, thành viên và task.
               </p>
 
-              <button
-                type="button"
-                onClick={handleOpenCreateModal}
-                className="mt-5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-              >
-                Create project
-              </button>
+              {canManageProjects ? (
+                <button
+                  type="button"
+                  onClick={handleOpenCreateModal}
+                  className="mt-5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Create project
+                </button>
+              ) : null}
             </section>
           )
         ) : null}

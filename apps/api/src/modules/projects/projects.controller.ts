@@ -16,12 +16,17 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { AddProjectMemberDto } from './dto/add-project-member.dto';
+import { ProjectMembersService } from './project-members.service';
 import { ProjectsService } from './projects.service';
 
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly projectMembersService: ProjectMembersService,
+  ) {}
 
   @Post()
   async create(
@@ -123,6 +128,72 @@ export class ProjectsController {
       data: {
         project,
       },
+    };
+  }
+
+  @Get(':projectId/members')
+  async findProjectMembers(
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const members = await this.projectMembersService.findAll(
+      workspaceId,
+      projectId,
+      user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Project members retrieved successfully',
+      data: {
+        members,
+      },
+    };
+  }
+
+  @Post(':projectId/members')
+  async addProjectMember(
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: AddProjectMemberDto,
+  ) {
+    const member = await this.projectMembersService.add(
+      workspaceId,
+      projectId,
+      user.id,
+      dto,
+    );
+
+    return {
+      success: true,
+      message: 'Project member added successfully',
+      data: {
+        member,
+      },
+    };
+  }
+
+  @Delete(':projectId/members/:memberId')
+  @HttpCode(HttpStatus.OK)
+  async removeProjectMember(
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('memberId', ParseUUIDPipe) memberId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    await this.projectMembersService.remove(
+      workspaceId,
+      projectId,
+      memberId,
+      user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Project member removed successfully',
+      data: null,
     };
   }
 }

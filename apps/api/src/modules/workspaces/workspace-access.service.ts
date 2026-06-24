@@ -19,6 +19,10 @@ export class WorkspaceAccessService {
     private readonly permissionService: PermissionService,
   ) {}
 
+  hasPermission(role: WorkspaceRole, permission: Permission): boolean {
+    return this.permissionService.hasPermission(role, permission);
+  }
+
   async assertPermission(
     workspaceId: string,
     userId: string,
@@ -26,10 +30,7 @@ export class WorkspaceAccessService {
   ): Promise<WorkspaceMembershipAccess> {
     const membership = await this.getMembership(workspaceId, userId);
 
-    const allowed = this.permissionService.hasPermission(
-      membership.role,
-      permission,
-    );
+    const allowed = this.hasPermission(membership.role, permission);
 
     if (!allowed) {
       throw new ForbiddenException(
