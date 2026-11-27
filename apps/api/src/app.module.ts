@@ -6,6 +6,7 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { ProjectsModule } from './modules/projects/project.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     WorkspacesModule,
     TasksModule,
+    ChatModule,
   ],
 })
 export class AppModule {}

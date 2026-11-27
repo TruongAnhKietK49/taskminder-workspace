@@ -69,6 +69,25 @@ enum ReminderStatus {
   CANCELLED
 }
 
+enum ConversationType {
+  WORKSPACE
+  PROJECT
+  DIRECT
+}
+
+enum MessageType {
+  TEXT
+  SYSTEM
+}
+
+enum PresenceStatus {
+  ONLINE
+  AWAY
+  BUSY
+  DO_NOT_DISTURB
+  OFFLINE
+}
+
 model User {
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
@@ -95,6 +114,10 @@ model User {
   notifications       Notification[]
   notificationPreference NotificationPreference?
   taskReminders       TaskReminder[]
+  createdConversations Conversation[]       @relation("ConversationCreatedBy")
+  conversationMembers  ConversationMember[]
+  sentMessages         Message[]            @relation("MessageSender")
+  presence             UserPresence?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -132,7 +155,8 @@ model Workspace {
   members  WorkspaceMember[]
   projects Project[]
 
-  invitations WorkspaceInvitation[]
+  invitations   WorkspaceInvitation[]
+  conversations Conversation[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -205,7 +229,8 @@ model Project {
 
   members ProjectMember[]
 
-  tasks Task[]
+  tasks        Task[]
+  conversation Conversation?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -377,4 +402,78 @@ model TaskReminder {
   @@index([status, remindAt])
   @@index([taskId, userId])
   @@map("task_reminders")
+}
+
+model Conversation {
+  id            String           @id @default(uuid()) @db.Uuid
+  workspaceId   String           @map("workspace_id") @db.Uuid
+  projectId     String?          @unique @map("project_id") @db.Uuid
+  type          ConversationType
+  name          String?
+  directKey     String?          @unique @map("direct_key")
+  createdById   String?          @map("created_by_id") @db.Uuid
+  lastMessageAt DateTime?        @map("last_message_at")
+
+  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User?                @relation("ConversationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  members   ConversationMember[]
+  messages  Message[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([workspaceId, type])
+  @@index([workspaceId, lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             String    @id @default(uuid()) @db.Uuid
+  conversationId String    @map("conversation_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  lastReadAt     DateTime? @map("last_read_at")
+  mutedUntil     DateTime? @map("muted_until")
+  joinedAt       DateTime  @default(now()) @map("joined_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+model Message {
+  id             String      @id @default(uuid()) @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  senderId       String      @map("sender_id") @db.Uuid
+  type           MessageType @default(TEXT)
+  content        String
+  editedAt       DateTime?   @map("edited_at")
+  deletedAt      DateTime?   @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model UserPresence {
+  userId          String         @id @map("user_id") @db.Uuid
+  status          PresenceStatus @default(OFFLINE)
+  preferredStatus PresenceStatus @default(ONLINE) @map("preferred_status")
+  statusMessage   String?        @map("status_message")
+  lastActiveAt    DateTime       @default(now()) @map("last_active_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("user_presences")
 }

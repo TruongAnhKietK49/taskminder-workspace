@@ -2,6 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { PresenceDot } from "@/features/chat/components/PresenceDot";
+import { useUpdateMyPresence } from "@/features/chat/hooks/useChat";
+import { useRealtimeStore } from "@/features/chat/stores/realtime.store";
+import type { PresenceStatus } from "@/features/chat/types/chat.types";
+import { PRESENCE_META } from "@/features/chat/utils/chat-helpers";
+
+const SELECTABLE_STATUSES: PresenceStatus[] = [
+  "ONLINE",
+  "AWAY",
+  "BUSY",
+  "DO_NOT_DISTURB",
+];
 
 function getInitials(fullName: string): string {
   const normalizedName = fullName.trim();
@@ -23,6 +35,10 @@ export function ProfileDropdown() {
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const myPresence = useRealtimeStore((state) => state.myPresence);
+  const updatePresenceMutation = useUpdateMyPresence();
+
+  const currentStatus: PresenceStatus = myPresence?.status ?? "ONLINE";
 
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -84,16 +100,20 @@ export function ProfileDropdown() {
         onClick={() => setIsOpen((current) => !current)}
         className="flex items-center gap-3 rounded-lg border border-slate-200 px-2 py-1.5 text-left transition hover:bg-slate-100"
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-900 text-sm font-semibold text-white">
+        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
           {user.avatarUrl ? (
             <img
               src={user.avatarUrl}
               alt={user.fullName}
-              className="h-full w-full object-cover"
+              className="h-full w-full rounded-full object-cover"
             />
           ) : (
             getInitials(user.fullName)
           )}
+          <PresenceDot
+            status={currentStatus}
+            className="absolute -bottom-0.5 -right-0.5"
+          />
         </div>
 
         <div className="hidden max-w-44 sm:block">
@@ -127,6 +147,38 @@ export function ProfileDropdown() {
             <p className="mt-0.5 truncate text-xs text-slate-500">
               {user.email}
             </p>
+          </div>
+
+          <div className="border-b border-slate-100 px-3 py-2.5">
+            <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Trạng thái hoạt động
+            </p>
+            <div className="mt-1.5 grid grid-cols-2 gap-1">
+              {SELECTABLE_STATUSES.map((statusOption) => {
+                const isSelected = currentStatus === statusOption;
+                return (
+                  <button
+                    key={statusOption}
+                    type="button"
+                    disabled={updatePresenceMutation.isPending}
+                    onClick={() =>
+                      updatePresenceMutation.mutate({ status: statusOption })
+                    }
+                    className={[
+                      "flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium transition",
+                      isSelected
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-700 hover:bg-slate-100",
+                    ].join(" ")}
+                  >
+                    <PresenceDot status={statusOption} />
+                    <span className="truncate">
+                      {PRESENCE_META[statusOption].label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="p-1.5">

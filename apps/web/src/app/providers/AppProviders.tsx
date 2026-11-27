@@ -6,6 +6,7 @@ import {
 } from "@/shared/stores/theme.store";
 import { AuthProvider } from "./AuthProvider";
 import { QueryProvider } from "./QueryProvider";
+import { SocketProvider } from "./SocketProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {
   const theme = useThemeStore((state) => state.theme);
@@ -17,8 +18,10 @@ export function AppProviders({ children }: PropsWithChildren) {
   return (
     <AuthProvider>
       <QueryProvider>
-        {children}
-        <ToastContainer />
+        <SocketProvider>
+          {children}
+          <ToastContainer />
+        </SocketProvider>
       </QueryProvider>
     </AuthProvider>
   );
