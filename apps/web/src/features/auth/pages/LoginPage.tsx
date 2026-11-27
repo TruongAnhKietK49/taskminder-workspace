@@ -1,10 +1,11 @@
 import type { ChangeEvent, FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 
 export function LoginPage() {
+  const location = useLocation();
   const { form, error, isSubmitting, updateField, submit } = useLogin();
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -83,6 +84,7 @@ export function LoginPage() {
         Don&apos;t have an account?{" "}
         <Link
           to={ROUTE_PATHS.REGISTER}
+          state={location.state}
           className="font-medium text-white underline"
         >
           Register

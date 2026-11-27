@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -17,6 +18,21 @@ export class WorkspaceInvitationsController {
   constructor(
     private readonly workspaceInvitationsService: WorkspaceInvitationsService,
   ) {}
+
+  @Get('me')
+  async findMine(@CurrentUser() user: AuthenticatedUser) {
+    const invitations = await this.workspaceInvitationsService.findMine(
+      user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Incoming workspace invitations retrieved successfully',
+      data: {
+        invitations,
+      },
+    };
+  }
 
   @Post(':token/accept')
   @HttpCode(HttpStatus.OK)

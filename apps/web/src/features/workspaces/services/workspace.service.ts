@@ -9,6 +9,7 @@ import type {
   WorkspaceMember,
   WorkspaceRole,
   InviteWorkspaceMemberPayload,
+  IncomingWorkspaceInvitation,
   WorkspaceInvitation,
 } from "@/features/workspaces/types/workspace.types";
 
@@ -30,6 +31,10 @@ type WorkspaceMemberResponseData = {
 
 type WorkspaceInvitationsResponseData = {
   invitations: WorkspaceInvitation[];
+};
+
+type IncomingWorkspaceInvitationsResponseData = {
+  invitations: IncomingWorkspaceInvitation[];
 };
 
 type WorkspaceInvitationResponseData = {
@@ -84,6 +89,14 @@ export const workspaceService = {
     const response = await apiClient.get<
       ApiResponse<WorkspaceInvitationsResponseData>
     >(`/workspaces/${workspaceId}/invitations`);
+
+    return response.data.data.invitations;
+  },
+
+  async getMyInvitations() {
+    const response = await apiClient.get<
+      ApiResponse<IncomingWorkspaceInvitationsResponseData>
+    >("/workspace-invitations/me");
 
     return response.data.data.invitations;
   },

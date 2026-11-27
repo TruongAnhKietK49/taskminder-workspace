@@ -75,6 +75,14 @@ export type WorkspaceInvitation = {
   acceptedBy: WorkspaceInvitationUser | null;
 };
 
+export type IncomingWorkspaceInvitation = WorkspaceInvitation & {
+  workspace: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+};
+
 export type AddWorkspaceMemberPayload = {
   email: string;
   role: Exclude<WorkspaceRole, "OWNER">;

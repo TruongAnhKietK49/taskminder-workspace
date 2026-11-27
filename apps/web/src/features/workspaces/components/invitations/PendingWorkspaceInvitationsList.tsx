@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useWorkspaceInvitationsQuery } from "@/features/workspaces/hooks/useWorkspaceInvitations";
 import type { Workspace } from "@/features/workspaces/types/workspace.types";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
+import { toast } from "@/shared/stores/toast.store";
 
 type PendingWorkspaceInvitationsListProps = {
   workspace: Workspace;
@@ -27,7 +28,12 @@ export function PendingWorkspaceInvitationsList({
   async function handleCopy(token: string) {
     const link = `${window.location.origin}/workspace-invitations/${token}`;
 
-    await navigator.clipboard.writeText(link);
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Đã sao chép link lời mời!");
+    } catch {
+      toast.error("Không thể sao chép link lời mời.");
+    }
   }
 
   return (

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+
+type LocationState = {
+  from?: string;
+};
 
 type RegisterFormState = {
   fullName: string;
@@ -51,6 +55,7 @@ function validateRegisterForm(form: RegisterFormState): string | null {
 
 export function useRegister() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const register = useAuthStore((state) => state.register);
   const isSubmitting = useAuthStore((state) => state.isSubmitting);
@@ -99,7 +104,9 @@ export function useRegister() {
         password: form.password,
       });
 
-      navigate(ROUTE_PATHS.DASHBOARD, {
+      const locationState = location.state as LocationState | null;
+
+      navigate(locationState?.from ?? ROUTE_PATHS.DASHBOARD, {
         replace: true,
       });
     } catch {

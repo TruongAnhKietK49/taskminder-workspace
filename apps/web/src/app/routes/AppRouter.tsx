@@ -38,10 +38,6 @@ export const appRouter = createBrowserRouter([
         path: ROUTE_PATHS.REGISTER,
         element: <RegisterPage />,
       },
-      {
-        path: ROUTE_PATHS.WORKSPACE_INVITATION_ACCEPT,
-        element: <AcceptWorkspaceInvitationPage />,
-      },
     ],
   },
   {
@@ -51,6 +47,10 @@ export const appRouter = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
+      {
+        path: ROUTE_PATHS.WORKSPACE_INVITATION_ACCEPT,
+        element: <AcceptWorkspaceInvitationPage />,
+      },
       {
         path: ROUTE_PATHS.DASHBOARD,
         element: <DashboardPage />,

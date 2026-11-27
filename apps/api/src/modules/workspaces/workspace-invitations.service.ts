@@ -216,6 +216,40 @@ export class WorkspaceInvitationsService {
     });
   }
 
+  async findMine(currentUserId: string) {
+    const currentUser = await this.prisma.user.findUniqueOrThrow({
+      where: {
+        id: currentUserId,
+      },
+      select: {
+        email: true,
+      },
+    });
+
+    return this.prisma.workspaceInvitation.findMany({
+      where: {
+        email: currentUser.email.trim().toLowerCase(),
+        status: WorkspaceInvitationStatus.PENDING,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      select: {
+        ...WORKSPACE_INVITATION_SELECT,
+        workspace: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   async accept(token: string, currentUserId: string) {
     const invitation = await this.findInvitationByTokenOrThrow(token);
 

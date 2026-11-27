@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { CreateWorkspaceModal } from "@/features/workspaces/components/CreateWorkspaceModal";
+import { IncomingWorkspaceInvitationsBanner } from "@/features/workspaces/components/invitations/IncomingWorkspaceInvitationsBanner";
 import { WorkspaceCard } from "@/features/workspaces/components/WorkspaceCard";
 import { WorkspaceSettingPanel } from "@/features/workspaces/components/WorkspaceSettingPanel";
 import { WorkspaceMembersPanel } from "@/features/workspaces/components/WorkspaceMembersPanel";
@@ -51,6 +52,8 @@ export function WorkspacesPage() {
             + Tạo workspace
           </button>
         </header>
+
+        <IncomingWorkspaceInvitationsBanner />
 
         {isLoading && (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
