@@ -43,7 +43,7 @@ export function useLogin() {
   const location = useLocation();
 
   const login = useAuthStore((state) => state.login);
-  const status = useAuthStore((state) => state.status);
+  const isSubmitting = useAuthStore((state) => state.isSubmitting);
   const authError = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
 
@@ -51,7 +51,6 @@ export function useLogin() {
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const isSubmitting = status === "loading";
   const error = validationError ?? authError;
 
   useEffect(() => {

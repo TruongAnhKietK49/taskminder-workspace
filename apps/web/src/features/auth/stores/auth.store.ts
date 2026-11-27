@@ -12,6 +12,7 @@ type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated";
 type AuthState = {
   user: AuthUser | null;
   status: AuthStatus;
+  isSubmitting: boolean;
   error: string | null;
 
   initialize: () => Promise<void>;
@@ -50,6 +51,7 @@ function getErrorMessage(error: unknown): string {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   status: "idle",
+  isSubmitting: false,
   error: null,
 
   initialize: async () => {
@@ -79,7 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (payload) => {
     set({
-      status: "loading",
+      isSubmitting: true,
       error: null,
     });
 
@@ -91,6 +93,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         user: session.user,
         status: "authenticated",
+        isSubmitting: false,
+        error: null,
       });
     } catch (error) {
       accessTokenManager.clear();
@@ -98,6 +102,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         user: null,
         status: "unauthenticated",
+        isSubmitting: false,
         error: getErrorMessage(error),
       });
 
@@ -107,7 +112,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   register: async (payload) => {
     set({
-      status: "loading",
+      isSubmitting: true,
       error: null,
     });
 
@@ -119,6 +124,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         user: session.user,
         status: "authenticated",
+        isSubmitting: false,
+        error: null,
       });
     } catch (error) {
       accessTokenManager.clear();
@@ -126,6 +133,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         user: null,
         status: "unauthenticated",
+        isSubmitting: false,
         error: getErrorMessage(error),
       });
 

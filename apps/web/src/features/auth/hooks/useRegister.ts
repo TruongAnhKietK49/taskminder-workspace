@@ -53,7 +53,7 @@ export function useRegister() {
   const navigate = useNavigate();
 
   const register = useAuthStore((state) => state.register);
-  const status = useAuthStore((state) => state.status);
+  const isSubmitting = useAuthStore((state) => state.isSubmitting);
   const authError = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
 
@@ -61,7 +61,6 @@ export function useRegister() {
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const isSubmitting = status === "loading";
   const error = validationError ?? authError;
 
   useEffect(() => {
