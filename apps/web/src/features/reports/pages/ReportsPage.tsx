@@ -70,27 +70,27 @@ export function ReportsPage() {
   );
 
   return (
-    <section className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-3xl bg-gradient-to-r from-slate-950 to-slate-800 p-6 text-white shadow-sm md:flex-row md:items-end md:justify-between">
+    <section className="space-y-4">
+      <header className="flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 py-4 text-white shadow-md shadow-blue-500/15 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-200">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-cyan-100">
             {activeWorkspace.name} · Analytics &amp; Audit
           </p>
-          <h1 className="mt-2 text-2xl font-bold md:text-3xl">
+          <h1 className="mt-1 text-xl font-bold md:text-2xl">
             Báo cáo &amp; Thống kê
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-300">
+          <p className="mt-1 max-w-2xl text-xs text-blue-50 md:text-sm">
             Theo dõi tiến độ dự án, tỷ lệ hoàn thành, khối lượng công việc từng
             thành viên và nhật ký hoạt động của toàn workspace.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             disabled={exportCsvMutation.isPending}
             onClick={() => exportCsvMutation.mutate()}
-            className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-blue-50 disabled:opacity-50"
+            className="rounded-xl bg-white px-3.5 py-2 text-xs font-semibold text-blue-700 shadow-xs hover:bg-sky-50 disabled:opacity-50"
           >
             {exportCsvMutation.isPending
               ? "Đang xuất..."
@@ -102,7 +102,7 @@ export function ReportsPage() {
               void reportQuery.refetch();
               void logsQuery.refetch();
             }}
-            className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/20"
+            className="rounded-xl border border-white/25 bg-white/15 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/25"
           >
             Làm mới
           </button>

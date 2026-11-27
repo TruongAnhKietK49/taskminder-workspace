@@ -19,18 +19,13 @@ export function LoginPage() {
     void submit();
   }
 
-  function fillDemoAccount(email: string) {
-    updateField("email", email);
-    updateField("password", "TaskMinder@2026");
-  }
-
   return (
-    <section className="w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-8 dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-6">
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+    <section className="w-full rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xl shadow-blue-950/5 sm:p-7 dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-5">
+        <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-sky-300">
           Chào mừng trở lại
         </span>
-        <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+        <h2 className="mt-2.5 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
           Đăng nhập
         </h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -69,7 +64,7 @@ export function LoginPage() {
               disabled={isSubmitting}
               placeholder="name@company.com"
               autoComplete="email"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3.5 text-sm text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:opacity-70"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3.5 text-sm text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-500/15 disabled:opacity-70"
             />
           </div>
         </div>
@@ -104,7 +99,7 @@ export function LoginPage() {
               disabled={isSubmitting}
               placeholder="••••••••"
               autoComplete="current-password"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-11 text-sm text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:opacity-70"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-11 text-sm text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-500/15 disabled:opacity-70"
             />
             <button
               type="button"
@@ -156,7 +151,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:from-blue-700 hover:to-sky-600 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isSubmitting ? (
             <>
@@ -172,42 +167,12 @@ export function LoginPage() {
         </button>
       </form>
 
-      {/* Quick Demo Account Helper */}
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-800/50">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          Điền nhanh tài khoản trải nghiệm
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => fillDemoAccount("owner@taskminder.dev")}
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            Owner (Kiệt)
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoAccount("admin@taskminder.dev")}
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            Admin (Minh Anh)
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoAccount("qa@taskminder.dev")}
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            QA (Có lời mời)
-          </button>
-        </div>
-      </div>
-
       <p className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
         Chưa có tài khoản?{" "}
         <Link
           to={ROUTE_PATHS.REGISTER}
           state={location.state}
-          className="font-semibold text-blue-600 hover:text-blue-700 dark:text-cyan-400"
+          className="font-semibold text-blue-600 hover:text-sky-600 dark:text-sky-400"
         >
           Đăng ký ngay
         </Link>

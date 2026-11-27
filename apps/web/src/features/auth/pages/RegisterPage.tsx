@@ -69,12 +69,12 @@ export function RegisterPage() {
   const passwordsMatch = form.password === form.confirmPassword;
 
   return (
-    <section className="w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-8 dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-6">
-        <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+    <section className="w-full rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xl shadow-blue-950/5 sm:p-7 dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-5">
+        <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-sky-300">
           Tạo tài khoản miễn phí
         </span>
-        <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+        <h2 className="mt-2.5 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
           Đăng ký tài khoản
         </h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -82,7 +82,7 @@ export function RegisterPage() {
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-3.5" onSubmit={handleSubmit} noValidate>
         <div>
           <label
             htmlFor="fullName"
@@ -291,7 +291,7 @@ export function RegisterPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:from-blue-700 hover:to-sky-600 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isSubmitting ? (
             <>

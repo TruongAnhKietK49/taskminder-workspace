@@ -71,9 +71,9 @@ export function TaskMinderLogo({
             y2="44"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor="#4F46E5" />
-            <stop offset="55%" stopColor="#2563EB" />
-            <stop offset="100%" stopColor="#06B6D4" />
+            <stop offset="0%" stopColor="#1D4ED8" />
+            <stop offset="50%" stopColor="#0284C7" />
+            <stop offset="100%" stopColor="#38BDF8" />
           </linearGradient>
           <linearGradient
             id={accentGradientId}

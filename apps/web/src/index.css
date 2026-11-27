@@ -12,6 +12,8 @@ html {
 body {
   min-height: 100%;
   margin: 0;
+  background-color: #f3f7fc;
+  color: #0f172a;
   font-family:
     Inter,
     ui-sans-serif,
@@ -22,13 +24,32 @@ body {
     sans-serif;
 }
 
+/* Subtle custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.45);
+}
+
 /* Global Dark Mode Surface & Typography Overrides */
 html.dark {
   color-scheme: dark;
 }
 
 html.dark body {
-  background-color: #0b1120;
+  background-color: #09101f;
   color: #f1f5f9;
 }
 
@@ -40,15 +61,17 @@ html.dark .bg-white\/95 {
   background-color: rgba(17, 24, 39, 0.95);
 }
 
-html.dark .bg-slate-100 {
-  background-color: #0b1120;
+html.dark .bg-slate-100,
+html.dark .bg-\[\#f3f7fc\] {
+  background-color: #09101f;
 }
 
 html.dark .bg-slate-50,
 html.dark .bg-slate-50\/80,
 html.dark .bg-slate-50\/70,
 html.dark .bg-slate-50\/60,
-html.dark .bg-slate-50\/50 {
+html.dark .bg-slate-50\/50,
+html.dark .bg-sky-50\/50 {
   background-color: #1e293b;
 }
 
@@ -85,7 +108,8 @@ html.dark .text-slate-400 {
 html.dark .hover\:bg-slate-50:hover,
 html.dark .hover\:bg-slate-50\/80:hover,
 html.dark .hover\:bg-slate-50\/70:hover,
-html.dark .hover\:bg-slate-100:hover {
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-sky-50:hover {
   background-color: #1e293b;
 }
 

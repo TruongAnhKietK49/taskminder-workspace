@@ -35,100 +35,108 @@ export function SettingsPage() {
   }
 
   return (
-    <section className="space-y-6">
-      <header className="rounded-3xl bg-gradient-to-r from-slate-950 to-slate-800 p-6 text-white shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wider text-blue-200">
+    <section className="space-y-4">
+      <header className="rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 py-4 text-white shadow-md shadow-blue-500/15">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-cyan-100">
           Preferences
         </p>
-        <h1 className="mt-2 text-2xl font-bold md:text-3xl">Settings</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+        <h1 className="mt-1 text-xl font-bold md:text-2xl">Cài đặt hệ thống</h1>
+        <p className="mt-1 max-w-2xl text-xs text-blue-50 md:text-sm">
           Tùy chỉnh giao diện Sáng / Tối, cấu hình nhận thông báo, Do Not
           Disturb, Quiet Hours và tắt tiếng theo từng project.
         </p>
       </header>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">
-          Appearance (Giao diện)
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Chọn chế độ hiển thị Sáng hoặc Tối cho toàn bộ ứng dụng.
-        </p>
-
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => handleSelectTheme("light")}
-            className={[
-              "rounded-2xl border p-4 text-left transition",
-              theme === "light"
-                ? "border-blue-400 bg-blue-50/70 ring-4 ring-blue-100"
-                : "border-slate-200 hover:bg-slate-50",
-            ].join(" ")}
-          >
-            <p className="text-sm font-semibold text-slate-950">
-              ☀️ Light Mode (Sáng)
-            </p>
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="space-y-4 xl:col-span-5">
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-950">
+              Appearance (Giao diện)
+            </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Nền sáng tương phản cao, phù hợp làm việc ban ngày.
+              Chọn chế độ hiển thị Sáng hoặc Tối cho toàn bộ ứng dụng.
             </p>
-          </button>
 
-          <button
-            type="button"
-            onClick={() => handleSelectTheme("dark")}
-            className={[
-              "rounded-2xl border p-4 text-left transition",
-              theme === "dark"
-                ? "border-blue-400 bg-blue-950/30 ring-4 ring-blue-900/40"
-                : "border-slate-200 hover:bg-slate-50",
-            ].join(" ")}
-          >
-            <p className="text-sm font-semibold text-slate-950">
-              🌙 Dark Mode (Tối)
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Nền tối dịu mắt, giảm chói khi làm việc ban đêm.
-            </p>
-          </button>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => handleSelectTheme("light")}
+                className={[
+                  "rounded-xl border p-3.5 text-left transition",
+                  theme === "light"
+                    ? "border-sky-400 bg-sky-50/80 ring-2 ring-sky-200"
+                    : "border-slate-200 hover:bg-slate-50",
+                ].join(" ")}
+              >
+                <p className="text-sm font-semibold text-slate-950">
+                  ☀️ Light Mode
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Nền sáng dịu, rõ nét ban ngày.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectTheme("dark")}
+                className={[
+                  "rounded-xl border p-3.5 text-left transition",
+                  theme === "dark"
+                    ? "border-sky-400 bg-blue-950/40 ring-2 ring-sky-700/50"
+                    : "border-slate-200 hover:bg-slate-50",
+                ].join(" ")}
+              >
+                <p className="text-sm font-semibold text-slate-950">
+                  🌙 Dark Mode
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Nền tối dịu mắt ban đêm.
+                </p>
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-950">
+              Tài khoản &amp; Workspace
+            </h2>
+            <div className="mt-3 space-y-2.5 text-sm">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5">
+                <p className="text-[11px] text-slate-500">Họ và tên</p>
+                <p className="mt-0.5 font-semibold text-slate-900">
+                  {currentUser?.fullName ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5">
+                <p className="text-[11px] text-slate-500">Email</p>
+                <p className="mt-0.5 font-semibold text-slate-900">
+                  {currentUser?.email ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5">
+                <p className="text-[11px] text-slate-500">Workspace hiện tại</p>
+                <p className="mt-0.5 font-semibold text-slate-900">
+                  {activeWorkspace
+                    ? `${activeWorkspace.name} (${activeWorkspace.currentUserRole})`
+                    : "Chưa chọn"}
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
 
-      {settingsQuery.isLoading ? (
-        <div className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-white" />
-      ) : settingsQuery.data ? (
-        <NotificationPreferencesForm
-          key={settingsQuery.data.updatedAt}
-          initialSettings={settingsQuery.data}
-          projects={projects}
-        />
-      ) : null}
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Account</h2>
-        <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-            <p className="text-xs text-slate-500">Full name</p>
-            <p className="mt-1 font-semibold text-slate-900">
-              {currentUser?.fullName ?? "—"}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-            <p className="text-xs text-slate-500">Email</p>
-            <p className="mt-1 font-semibold text-slate-900">
-              {currentUser?.email ?? "—"}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-            <p className="text-xs text-slate-500">Active workspace</p>
-            <p className="mt-1 font-semibold text-slate-900">
-              {activeWorkspace
-                ? `${activeWorkspace.name} (${activeWorkspace.currentUserRole})`
-                : "None"}
-            </p>
-          </div>
+        <div className="xl:col-span-7">
+          {settingsQuery.isLoading ? (
+            <div className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-white" />
+          ) : settingsQuery.data ? (
+            <NotificationPreferencesForm
+              key={settingsQuery.data.updatedAt}
+              initialSettings={settingsQuery.data}
+              projects={projects}
+            />
+          ) : null}
         </div>
-      </section>
+      </div>
     </section>
   );
 }

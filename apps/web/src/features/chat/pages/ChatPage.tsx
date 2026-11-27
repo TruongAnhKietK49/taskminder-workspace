@@ -150,7 +150,7 @@ export function ChatPage() {
 
   return (
     <>
-      <section className="flex h-[calc(100vh-8.5rem)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:flex-row">
+      <section className="flex h-[calc(100vh-5.75rem)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:flex-row">
         <ChatSidebar
           conversations={conversations}
           selectedConversationId={resolvedConversationId}
