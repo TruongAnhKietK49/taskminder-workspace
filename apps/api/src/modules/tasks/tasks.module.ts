@@ -4,10 +4,11 @@ import { WorkspacesModule } from '../workspaces/workspaces.module';
 import { TaskAccessService } from './task-access.service';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
+import { WorkspaceTasksController } from './workspace-tasks.controller';
 
 @Module({
   imports: [WorkspacesModule, ProjectsModule],
-  controllers: [TasksController],
+  controllers: [TasksController, WorkspaceTasksController],
   providers: [TasksService, TaskAccessService],
   exports: [TasksService, TaskAccessService],
 })

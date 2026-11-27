@@ -9,12 +9,14 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { QueryTasksDto } from './dto/query-tasks.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
 
@@ -51,11 +53,13 @@ export class TasksController {
     @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthenticatedUser,
+    @Query() query: QueryTasksDto,
   ) {
     const tasks = await this.tasksService.findAll(
       workspaceId,
       projectId,
       user.id,
+      query,
     );
 
     return {

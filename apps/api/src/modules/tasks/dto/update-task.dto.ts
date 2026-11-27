@@ -23,7 +23,7 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsString()
   @MaxLength(TASK_DESCRIPTION_MAX_LENGTH)
-  description?: string;
+  description?: string | null;
 
   @IsOptional()
   @IsEnum(TaskStatus)
@@ -35,9 +35,9 @@ export class UpdateTaskDto {
 
   @IsOptional()
   @IsUUID()
-  assigneeId?: string;
+  assigneeId?: string | null;
 
   @IsOptional()
   @IsISO8601()
-  dueDate?: string;
+  dueDate?: string | null;
 }
