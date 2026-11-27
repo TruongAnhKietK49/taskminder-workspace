@@ -10,12 +10,14 @@
     "build:api": "pnpm --dir apps/api build",
     "lint:web": "pnpm --dir apps/web lint",
     "lint:api": "pnpm --dir apps/api lint",
-    "typecheck:web": "pnpm --dir apps/web tsc -b",
-    "typecheck:api": "pnpm --dir apps/api tsc --noEmit",
+    "test:api": "pnpm --dir apps/api test",
+    "typecheck:web": "pnpm --dir apps/web exec tsc -b",
+    "typecheck:api": "pnpm --dir apps/api exec tsc --noEmit",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "pnpm --dir apps/api exec prisma migrate dev",
     "db:generate": "pnpm --dir apps/api exec prisma generate",
+    "db:seed": "pnpm --dir apps/api db:seed",
     "db:studio": "pnpm --dir apps/api exec prisma studio"
   },
   "keywords": [
@@ -26,6 +28,6 @@
     "nestjs",
     "postgresql"
   ],
-  "author": "",
+  "author": "Truong Anh Kiet",
   "license": "MIT"
 }

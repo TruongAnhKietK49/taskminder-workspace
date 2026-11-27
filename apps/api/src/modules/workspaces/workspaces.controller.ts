@@ -11,6 +11,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
@@ -219,6 +221,8 @@ export class WorkspacesController {
   }
 
   @Post(':workspaceId/invitations')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 20, windowMs: 60_000 })
   async inviteMember(
     @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
     @CurrentUser() user: AuthenticatedUser,

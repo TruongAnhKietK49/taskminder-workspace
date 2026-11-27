@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { PermissionsModule } from '../../common/permissions/permissions.module';
 
 import { WorkspaceAccessService } from './workspace-access.service';
@@ -19,6 +20,7 @@ import { WorkspacesService } from './workspaces.service';
     WorkspaceMembersService,
     WorkspaceInvitationsService,
     WorkspaceAccessService,
+    RateLimitGuard,
   ],
 
   exports: [

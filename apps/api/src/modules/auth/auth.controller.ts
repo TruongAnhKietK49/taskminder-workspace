@@ -11,6 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { AuthService } from './auth.service';
 import { AUTH_REFRESH_TOKEN_COOKIE } from './constants/auth.constants';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -24,6 +26,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 10, windowMs: 60_000 })
   async register(
     @Body() registerDto: RegisterDto,
     @Req() request: Request,
@@ -51,6 +55,8 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 15, windowMs: 60_000 })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
@@ -79,6 +85,8 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 30, windowMs: 60_000 })
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Req() request: Request,
