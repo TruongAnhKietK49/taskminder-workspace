@@ -2,8 +2,10 @@ import { NavLink, Outlet } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { ProfileDropdown } from "@/features/auth/components/ProfileDropdown";
+import { NotificationBellDropdown } from "@/features/notifications/components/NotificationBellDropdown";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/WorkspaceSwitcher";
 import { cn } from "@/shared/lib/cn";
+import { useThemeStore } from "@/shared/stores/theme.store";
 
 const navigationItems = [
   {
@@ -45,6 +47,8 @@ const navigationItems = [
 ];
 
 export function DashboardLayout() {
+  const { theme, toggleTheme } = useThemeStore();
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-slate-200 bg-white p-4 lg:flex">
@@ -91,6 +95,25 @@ export function DashboardLayout() {
               <div className="hidden w-60 sm:block lg:hidden">
                 <WorkspaceSwitcher compact />
               </div>
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label="Toggle Light/Dark theme"
+                title={
+                  theme === "dark"
+                    ? "Switch to Light Mode"
+                    : "Switch to Dark Mode"
+                }
+                className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                <span>{theme === "dark" ? "☀️" : "🌙"}</span>
+                <span className="hidden sm:inline">
+                  {theme === "dark" ? "Light" : "Dark"}
+                </span>
+              </button>
+
+              <NotificationBellDropdown />
 
               <ProfileDropdown />
             </div>

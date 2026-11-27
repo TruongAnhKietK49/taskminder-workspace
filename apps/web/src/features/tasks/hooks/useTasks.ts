@@ -8,6 +8,7 @@ import type {
   UpdateTaskVariables,
   WorkspaceTask,
 } from "@/features/tasks/types/task.types";
+import { toast } from "@/shared/stores/toast.store";
 
 const TASKS_QUERY_KEY = ["tasks"] as const;
 
@@ -25,6 +26,8 @@ export const taskQueryKeys = {
     [...TASKS_QUERY_KEY, "attachments", taskId] as const,
   activities: (taskId: string | null) =>
     [...TASKS_QUERY_KEY, "activities", taskId] as const,
+  reminders: (taskId: string | null) =>
+    [...TASKS_QUERY_KEY, "reminders", taskId] as const,
 };
 
 export function useWorkspaceTasksQuery(
@@ -56,6 +59,7 @@ export function useCreateTask() {
 
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
+      toast.success("Tạo task thành công!");
     },
   });
 }
@@ -117,14 +121,17 @@ export function useUpdateTask() {
       return { previousLists };
     },
 
-    onError: (_error, _variables, context) => {
-      if (!context?.previousLists) {
-        return;
-      }
+    onSuccess: () => {
+      toast.success("Đã cập nhật task!");
+    },
 
-      for (const [queryKey, data] of context.previousLists) {
-        queryClient.setQueryData(queryKey, data);
+    onError: (_error, _variables, context) => {
+      if (context?.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data);
+        }
       }
+      toast.error("Cập nhật task thất bại.");
     },
 
     onSettled: () => {
@@ -142,6 +149,7 @@ export function useArchiveTask() {
 
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
+      toast.info("Đã lưu trữ task.");
     },
   });
 }
@@ -187,6 +195,7 @@ export function useCreateTaskComment() {
         queryKey: taskQueryKeys.activities(variables.taskId),
       });
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
+      toast.success("Đã thêm bình luận!");
     },
   });
 }
@@ -220,6 +229,7 @@ export function useUpdateTaskComment() {
       void queryClient.invalidateQueries({
         queryKey: taskQueryKeys.comments(variables.taskId),
       });
+      toast.success("Đã cập nhật bình luận!");
     },
   });
 }
@@ -246,6 +256,7 @@ export function useDeleteTaskComment() {
         queryKey: taskQueryKeys.comments(variables.taskId),
       });
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
+      toast.info("Đã xóa bình luận.");
     },
   });
 }
@@ -291,6 +302,7 @@ export function useUploadTaskAttachment() {
         queryKey: taskQueryKeys.activities(variables.taskId),
       });
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
+      toast.success("Đã tải lên tệp đính kèm!");
     },
   });
 }
@@ -325,6 +337,7 @@ export function useDeleteTaskAttachment() {
         queryKey: taskQueryKeys.activities(variables.taskId),
       });
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
+      toast.info("Đã xóa tệp đính kèm.");
     },
   });
 }
@@ -343,5 +356,74 @@ export function useTaskActivitiesQuery(
         taskId as string,
       ),
     enabled: Boolean(workspaceId && projectId && taskId),
+  });
+}
+
+export function useTaskRemindersQuery(
+  workspaceId: string | null,
+  projectId: string | null,
+  taskId: string | null,
+) {
+  return useQuery({
+    queryKey: taskQueryKeys.reminders(taskId),
+    queryFn: () =>
+      taskService.getReminders(
+        workspaceId as string,
+        projectId as string,
+        taskId as string,
+      ),
+    enabled: Boolean(workspaceId && projectId && taskId),
+  });
+}
+
+export function useCreateTaskReminder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      workspaceId,
+      projectId,
+      taskId,
+      remindAt,
+    }: {
+      workspaceId: string;
+      projectId: string;
+      taskId: string;
+      remindAt: string;
+    }) =>
+      taskService.createReminder(workspaceId, projectId, taskId, remindAt),
+
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.reminders(variables.taskId),
+      });
+      toast.success("Đã đặt nhắc hạn!");
+    },
+  });
+}
+
+export function useDeleteTaskReminder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      workspaceId,
+      projectId,
+      taskId,
+      reminderId,
+    }: {
+      workspaceId: string;
+      projectId: string;
+      taskId: string;
+      reminderId: string;
+    }) =>
+      taskService.deleteReminder(workspaceId, projectId, taskId, reminderId),
+
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.reminders(variables.taskId),
+      });
+      toast.info("Đã xóa nhắc hạn.");
+    },
   });
 }

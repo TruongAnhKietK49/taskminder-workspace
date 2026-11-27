@@ -8,6 +8,8 @@ import { TaskAttachmentsController } from './task-attachments.controller';
 import { TaskAttachmentsService } from './task-attachments.service';
 import { TaskCommentsController } from './task-comments.controller';
 import { TaskCommentsService } from './task-comments.service';
+import { TaskRemindersController } from './task-reminders.controller';
+import { TaskRemindersService } from './task-reminders.service';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { WorkspaceTasksController } from './workspace-tasks.controller';
@@ -20,6 +22,7 @@ import { WorkspaceTasksController } from './workspace-tasks.controller';
     TaskCommentsController,
     TaskAttachmentsController,
     TaskActivitiesController,
+    TaskRemindersController,
   ],
   providers: [
     TasksService,
@@ -27,6 +30,7 @@ import { WorkspaceTasksController } from './workspace-tasks.controller';
     TaskCommentsService,
     TaskAttachmentsService,
     TaskActivitiesService,
+    TaskRemindersService,
   ],
   exports: [
     TasksService,
@@ -34,6 +38,7 @@ import { WorkspaceTasksController } from './workspace-tasks.controller';
     TaskCommentsService,
     TaskAttachmentsService,
     TaskActivitiesService,
+    TaskRemindersService,
   ],
 })
 export class TasksModule {}

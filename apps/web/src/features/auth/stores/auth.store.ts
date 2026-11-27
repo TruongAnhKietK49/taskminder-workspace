@@ -6,6 +6,7 @@ import type {
   LoginPayload,
   RegisterPayload,
 } from "@/features/auth/types/auth.types";
+import { toast } from "@/shared/stores/toast.store";
 
 type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated";
 
@@ -96,6 +97,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         isSubmitting: false,
         error: null,
       });
+
+      toast.success("Đăng nhập thành công!");
     } catch (error) {
       accessTokenManager.clear();
 
@@ -127,6 +130,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         isSubmitting: false,
         error: null,
       });
+
+      toast.success("Đăng ký tài khoản thành công!");
     } catch (error) {
       accessTokenManager.clear();
 
@@ -152,6 +157,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         status: "unauthenticated",
         error: null,
       });
+
+      toast.info("Đã đăng xuất.");
     }
   },
 

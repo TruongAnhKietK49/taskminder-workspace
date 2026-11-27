@@ -7,6 +7,7 @@ import type {
   TaskAttachment,
   TaskComment,
   TaskQueryParams,
+  TaskReminder,
   UpdateTaskPayload,
   WorkspaceTask,
   WorkspaceTaskSummary,
@@ -277,5 +278,42 @@ export const taskService = {
     );
 
     return response.data.data.activities;
+  },
+
+  async getReminders(workspaceId: string, projectId: string, taskId: string) {
+    const response = await apiClient.get<
+      ApiResponse<{ reminders: TaskReminder[] }>
+    >(
+      `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/reminders`,
+    );
+
+    return response.data.data.reminders;
+  },
+
+  async createReminder(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    remindAt: string,
+  ) {
+    const response = await apiClient.post<
+      ApiResponse<{ reminder: TaskReminder }>
+    >(
+      `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/reminders`,
+      { remindAt },
+    );
+
+    return response.data.data.reminder;
+  },
+
+  async deleteReminder(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    reminderId: string,
+  ) {
+    await apiClient.delete(
+      `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/reminders/${reminderId}`,
+    );
   },
 };

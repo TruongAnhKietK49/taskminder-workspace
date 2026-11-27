@@ -8,6 +8,7 @@ import type {
   WorkspaceMember,
 } from "@/features/workspaces/types/workspace.types";
 import { workspaceQueryKeys } from "@/features/workspaces/hooks/useWorkspaces";
+import { toast } from "@/shared/stores/toast.store";
 
 const WORKSPACE_MEMBERS_QUERY_KEY = ["workspace-members"] as const;
 
@@ -52,6 +53,7 @@ export function useAddWorkspaceMember() {
       void queryClient.invalidateQueries({
         queryKey: workspaceQueryKeys.list(),
       });
+      toast.success("Đã thêm thành viên!");
     },
   });
 }
@@ -75,6 +77,7 @@ export function useUpdateWorkspaceMemberRole() {
             member.id === updatedMember.id ? updatedMember : member,
           ),
       );
+      toast.success("Đã cập nhật vai trò thành viên!");
     },
   });
 }
@@ -96,6 +99,7 @@ export function useRemoveWorkspaceMember() {
       void queryClient.invalidateQueries({
         queryKey: workspaceQueryKeys.list(),
       });
+      toast.info("Đã xóa thành viên khỏi workspace.");
     },
   });
 }

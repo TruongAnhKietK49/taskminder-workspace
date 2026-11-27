@@ -6,6 +6,7 @@ import type {
   UpdateWorkspaceVariables,
   Workspace,
 } from "@/features/workspaces/types/workspace.types";
+import { toast } from "@/shared/stores/toast.store";
 
 const WORKSPACES_QUERY_KEY = ["workspaces"] as const;
 
@@ -51,6 +52,7 @@ export function useCreateWorkspace() {
       );
 
       setActiveWorkspaceId(workspace.id);
+      toast.success("Tạo workspace thành công!");
     },
   });
 }
@@ -84,6 +86,7 @@ export function useUpdateWorkspace() {
           return sortByUpdatedAt(nextWorkspaces);
         },
       );
+      toast.success("Đã cập nhật workspace!");
     },
   });
 }
@@ -113,6 +116,8 @@ export function useDeleteWorkspace() {
       if (currentActiveWorkspaceId === removedWorkspaceId) {
         setActiveWorkspaceId(remainingWorkspaces[0]?.id ?? null);
       }
+
+      toast.info("Đã xóa workspace.");
     },
   });
 }

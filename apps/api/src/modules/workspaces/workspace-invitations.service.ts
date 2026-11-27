@@ -4,15 +4,18 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import {
+  NotificationType,
   Prisma,
   UserStatus,
   WorkspaceInvitationStatus,
   WorkspaceRole,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { InviteWorkspaceMemberDto } from './dto/invite-workspace-member.dto';
 import { WorkspaceAccessService } from './workspace-access.service';
 
@@ -70,6 +73,7 @@ export class WorkspaceInvitationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
+    @Optional() private readonly notificationsService?: NotificationsService,
   ) {}
 
   async create(
@@ -152,7 +156,7 @@ export class WorkspaceInvitationsService {
     expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRES_IN_DAYS);
 
     try {
-      return await this.prisma.workspaceInvitation.create({
+      const invitation = await this.prisma.workspaceInvitation.create({
         data: {
           workspaceId,
           email: normalizedEmail,
@@ -163,6 +167,27 @@ export class WorkspaceInvitationsService {
         },
         select: WORKSPACE_INVITATION_SELECT,
       });
+
+      if (invitedUser && this.notificationsService) {
+        const workspace = await this.prisma.workspace.findUnique({
+          where: { id: workspaceId },
+          select: { name: true },
+        });
+
+        void this.notificationsService.createNotification({
+          userId: invitedUser.id,
+          type: NotificationType.WORKSPACE_INVITATION,
+          title: 'Workspace invitation',
+          message: `You were invited to join ${workspace?.name ?? 'a workspace'} as ${dto.role}`,
+          metadata: {
+            workspaceId,
+            token: invitation.token,
+            role: invitation.role,
+          },
+        });
+      }
+
+      return invitation;
     } catch (error) {
       if (this.isUniqueConstraintError(error)) {
         throw new ConflictException(

@@ -9,6 +9,7 @@ import type {
 } from "@/features/workspaces/types/workspace.types";
 import { workspaceMemberQueryKeys } from "@/features/workspaces/hooks/useWorkspaceMembers";
 import { workspaceQueryKeys } from "@/features/workspaces/hooks/useWorkspaces";
+import { toast } from "@/shared/stores/toast.store";
 
 const WORKSPACE_INVITATIONS_QUERY_KEY = ["workspace-invitations"] as const;
 
@@ -54,6 +55,7 @@ export function useInviteWorkspaceMember() {
           ),
         ],
       );
+      toast.success("Đã gửi lời mời thành viên!");
     },
   });
 }
@@ -83,6 +85,7 @@ export function useAcceptWorkspaceInvitation() {
       await queryClient.invalidateQueries({
         queryKey: projectQueryKeys.all,
       });
+      toast.success("Đã tham gia workspace!");
     },
   });
 }
@@ -90,5 +93,8 @@ export function useAcceptWorkspaceInvitation() {
 export function useRejectWorkspaceInvitation() {
   return useMutation({
     mutationFn: workspaceService.rejectInvitation,
+    onSuccess: () => {
+      toast.info("Đã từ chối lời mời.");
+    },
   });
 }

@@ -7,6 +7,7 @@ import type {
   Project,
   UpdateProjectVariables,
 } from "@/features/projects/types/project.types";
+import { toast } from "@/shared/stores/toast.store";
 
 const PROJECTS_QUERY_KEY = ["projects"] as const;
 
@@ -84,6 +85,7 @@ export function useCreateProject() {
         projectQueryKeys.detail(variables.workspaceId, project.id),
         project,
       );
+      toast.success("Tạo project thành công!");
     },
   });
 }
@@ -115,6 +117,7 @@ export function useUpdateProject() {
         projectQueryKeys.detail(variables.workspaceId, updatedProject.id),
         updatedProject,
       );
+      toast.success("Đã cập nhật project!");
     },
   });
 }
@@ -146,6 +149,7 @@ export function useArchiveProject() {
         projectQueryKeys.detail(variables.workspaceId, archivedProject.id),
         archivedProject,
       );
+      toast.info("Đã lưu trữ project.");
     },
   });
 }

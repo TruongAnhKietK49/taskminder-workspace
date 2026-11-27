@@ -10,11 +10,14 @@ import {
 } from "@/features/tasks/constants/task.constants";
 import {
   useCreateTaskComment,
+  useCreateTaskReminder,
   useDeleteTaskAttachment,
   useDeleteTaskComment,
+  useDeleteTaskReminder,
   useTaskActivitiesQuery,
   useTaskAttachmentsQuery,
   useTaskCommentsQuery,
+  useTaskRemindersQuery,
   useUpdateTaskComment,
   useUploadTaskAttachment,
 } from "@/features/tasks/hooks/useTasks";
@@ -45,7 +48,7 @@ type TaskDetailDrawerProps = {
   onStatusChange: (task: WorkspaceTask, status: TaskStatus) => void;
 };
 
-type TaskDetailTab = "comments" | "attachments" | "activity";
+type TaskDetailTab = "comments" | "attachments" | "reminders" | "activity";
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) {
@@ -147,6 +150,7 @@ function TaskDetailDrawerContent({
   const [commentInput, setCommentInput] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState("");
+  const [customReminderAt, setCustomReminderAt] = useState("");
   const [tabError, setTabError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -165,6 +169,11 @@ function TaskDetailDrawerContent({
     task.projectId,
     task.id,
   );
+  const remindersQuery = useTaskRemindersQuery(
+    workspaceId,
+    task.projectId,
+    task.id,
+  );
   const membersQuery = useProjectMembersQuery(workspaceId, task.projectId);
 
   const createCommentMutation = useCreateTaskComment();
@@ -172,6 +181,8 @@ function TaskDetailDrawerContent({
   const deleteCommentMutation = useDeleteTaskComment();
   const uploadAttachmentMutation = useUploadTaskAttachment();
   const deleteAttachmentMutation = useDeleteTaskAttachment();
+  const createReminderMutation = useCreateTaskReminder();
+  const deleteReminderMutation = useDeleteTaskReminder();
 
   const comments = useMemo(
     () => commentsQuery.data ?? [],
@@ -184,6 +195,10 @@ function TaskDetailDrawerContent({
   const activities = useMemo(
     () => activitiesQuery.data ?? [],
     [activitiesQuery.data],
+  );
+  const reminders = useMemo(
+    () => remindersQuery.data ?? [],
+    [remindersQuery.data],
   );
   const members = useMemo(
     () => membersQuery.data ?? [],
@@ -332,6 +347,58 @@ function TaskDetailDrawerContent({
         attachmentId,
       },
       {
+        onError: (error) => {
+          setTabError(getApiErrorMessage(error));
+        },
+      },
+    );
+  }
+
+  function handleCreatePresetReminder(offsetMinutes: number) {
+    if (!task.dueDate) {
+      return;
+    }
+
+    const dueMs = Date.parse(task.dueDate);
+    if (Number.isNaN(dueMs)) {
+      return;
+    }
+
+    const targetIso = new Date(dueMs - offsetMinutes * 60 * 1000).toISOString();
+    setTabError(null);
+    createReminderMutation.mutate(
+      {
+        workspaceId,
+        projectId: task.projectId,
+        taskId: task.id,
+        remindAt: targetIso,
+      },
+      {
+        onError: (error) => {
+          setTabError(getApiErrorMessage(error));
+        },
+      },
+    );
+  }
+
+  function handleCreateCustomReminder(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!customReminderAt) {
+      return;
+    }
+
+    setTabError(null);
+    createReminderMutation.mutate(
+      {
+        workspaceId,
+        projectId: task.projectId,
+        taskId: task.id,
+        remindAt: new Date(customReminderAt).toISOString(),
+      },
+      {
+        onSuccess: () => {
+          setCustomReminderAt("");
+        },
         onError: (error) => {
           setTabError(getApiErrorMessage(error));
         },
@@ -511,6 +578,22 @@ function TaskDetailDrawerContent({
                 ].join(" ")}
               >
                 Attachments ({attachments.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("reminders");
+                  setTabError(null);
+                }}
+                className={[
+                  "rounded-xl px-3 py-1.5 text-xs font-semibold transition",
+                  activeTab === "reminders"
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                ].join(" ")}
+              >
+                Reminders ({reminders.length})
               </button>
 
               <button
@@ -779,6 +862,112 @@ function TaskDetailDrawerContent({
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {activeTab === "reminders" ? (
+              <div className="mt-4 space-y-4">
+                {task.dueDate ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+                    <p className="text-xs font-semibold text-slate-800">
+                      Quick presets (before due date)
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={createReminderMutation.isPending}
+                        onClick={() => handleCreatePresetReminder(15)}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        15m before
+                      </button>
+                      <button
+                        type="button"
+                        disabled={createReminderMutation.isPending}
+                        onClick={() => handleCreatePresetReminder(60)}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        1h before
+                      </button>
+                      <button
+                        type="button"
+                        disabled={createReminderMutation.isPending}
+                        onClick={() => handleCreatePresetReminder(24 * 60)}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        1 day before
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <form
+                  onSubmit={handleCreateCustomReminder}
+                  className="flex flex-wrap items-end gap-2"
+                >
+                  <div className="min-w-[200px] flex-1">
+                    <label className="text-xs font-medium text-slate-600">
+                      Custom reminder time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={customReminderAt}
+                      onChange={(event) =>
+                        setCustomReminderAt(event.target.value)
+                      }
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={
+                      createReminderMutation.isPending || !customReminderAt
+                    }
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    Set reminder
+                  </button>
+                </form>
+
+                {remindersQuery.isLoading ? (
+                  <p className="text-xs text-slate-500">Loading reminders...</p>
+                ) : reminders.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-500">
+                    No reminders set for this task.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-slate-100 rounded-xl border border-slate-200">
+                    {reminders.map((reminder) => (
+                      <div
+                        key={reminder.id}
+                        className="flex items-center justify-between gap-3 p-3 text-xs"
+                      >
+                        <div>
+                          <p className="font-semibold text-slate-900">
+                            {formatDateTime(reminder.remindAt)}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-slate-500">
+                            Status: {reminder.status}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            deleteReminderMutation.mutate({
+                              workspaceId,
+                              projectId: task.projectId,
+                              taskId: task.id,
+                              reminderId: reminder.id,
+                            })
+                          }
+                          className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

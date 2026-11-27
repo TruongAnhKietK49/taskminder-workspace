@@ -79,6 +79,16 @@ export type TaskActivity = {
   actor: TaskUserSummary;
 };
 
+export type TaskReminder = {
+  id: string;
+  taskId: string;
+  userId: string;
+  remindAt: string;
+  status: "PENDING" | "SENT" | "CANCELLED";
+  sentAt: string | null;
+  createdAt: string;
+};
+
 export type WorkspaceTask = Task & {
   project: TaskProjectSummary;
 };

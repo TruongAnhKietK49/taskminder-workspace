@@ -51,6 +51,24 @@ enum TaskPriority {
   URGENT
 }
 
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_DUE_SOON
+  TASK_OVERDUE
+  PROJECT_INVITATION
+  WORKSPACE_INVITATION
+  MENTION
+  CHAT_MESSAGE
+  SYSTEM
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  CANCELLED
+}
+
 model User {
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
@@ -74,6 +92,9 @@ model User {
   taskComments        TaskComment[]    @relation("TaskCommentAuthor")
   uploadedAttachments TaskAttachment[] @relation("TaskAttachmentUploader")
   taskActivities      TaskActivity[]   @relation("TaskActivityActor")
+  notifications       Notification[]
+  notificationPreference NotificationPreference?
+  taskReminders       TaskReminder[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -233,6 +254,7 @@ model Task {
   comments    TaskComment[]
   attachments TaskAttachment[]
   activities  TaskActivity[]
+  reminders   TaskReminder[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -296,4 +318,63 @@ model TaskActivity {
 
   @@index([taskId, createdAt])
   @@map("task_activities")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  metadata  Json?
+  dedupeKey String?          @map("dedupe_key")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @unique @map("user_id") @db.Uuid
+  taskUpdatesEnabled Boolean  @default(true) @map("task_updates_enabled")
+  remindersEnabled   Boolean  @default(true) @map("reminders_enabled")
+  chatEnabled        Boolean  @default(true) @map("chat_enabled")
+  emailEnabled       Boolean  @default(false) @map("email_enabled")
+  doNotDisturb       Boolean  @default(false) @map("do_not_disturb")
+  quietHoursEnabled  Boolean  @default(false) @map("quiet_hours_enabled")
+  quietHoursStart    String?  @default("22:00") @map("quiet_hours_start")
+  quietHoursEnd      String?  @default("07:00") @map("quiet_hours_end")
+  mutedProjectIds    String[] @default([]) @map("muted_project_ids")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("notification_preferences")
+}
+
+model TaskReminder {
+  id       String         @id @default(uuid()) @db.Uuid
+  taskId   String         @map("task_id") @db.Uuid
+  userId   String         @map("user_id") @db.Uuid
+  remindAt DateTime       @map("remind_at")
+  status   ReminderStatus @default(PENDING)
+  sentAt   DateTime?      @map("sent_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([status, remindAt])
+  @@index([taskId, userId])
+  @@map("task_reminders")
 }

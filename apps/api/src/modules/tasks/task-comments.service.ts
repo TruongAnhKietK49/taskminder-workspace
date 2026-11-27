@@ -3,8 +3,11 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { NotificationType } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { TASK_ACTIVITY_ACTIONS } from './constants/task.constants';
 import { CreateTaskCommentDto } from './dto/create-task-comment.dto';
 import { UpdateTaskCommentDto } from './dto/update-task-comment.dto';
@@ -35,6 +38,7 @@ export class TaskCommentsService {
     private readonly prisma: PrismaService,
     private readonly taskAccessService: TaskAccessService,
     private readonly taskActivitiesService: TaskActivitiesService,
+    @Optional() private readonly notificationsService?: NotificationsService,
   ) {}
 
   async findAll(
@@ -104,7 +108,94 @@ export class TaskCommentsService {
       },
     });
 
+    if (this.notificationsService) {
+      await this.emitCommentNotifications(
+        workspaceId,
+        projectId,
+        taskId,
+        currentUserId,
+        comment.author.fullName,
+        content,
+      );
+    }
+
     return comment;
+  }
+
+  private async emitCommentNotifications(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    currentUserId: string,
+    authorName: string,
+    content: string,
+  ) {
+    const [task, members] = await Promise.all([
+      this.prisma.task.findUnique({
+        where: { id: taskId },
+        select: { title: true, assigneeId: true, createdById: true },
+      }),
+      this.prisma.projectMember.findMany({
+        where: { projectId },
+        select: {
+          user: {
+            select: { id: true, fullName: true },
+          },
+        },
+      }),
+    ]);
+
+    if (!task) {
+      return;
+    }
+
+    const lowerContent = content.toLowerCase();
+    const mentionedIds = new Set<string>();
+
+    for (const member of members) {
+      if (member.user.id === currentUserId) {
+        continue;
+      }
+
+      if (lowerContent.includes(`@${member.user.fullName.toLowerCase()}`)) {
+        mentionedIds.add(member.user.id);
+        void this.notificationsService?.createNotification({
+          userId: member.user.id,
+          type: NotificationType.MENTION,
+          title: `${authorName} mentioned you`,
+          message: `On "${task.title}": ${content.slice(0, 100)}`,
+          projectId,
+          metadata: { workspaceId, projectId, taskId },
+        });
+      }
+    }
+
+    const watchers = new Set<string>();
+    if (
+      task.assigneeId &&
+      task.assigneeId !== currentUserId &&
+      !mentionedIds.has(task.assigneeId)
+    ) {
+      watchers.add(task.assigneeId);
+    }
+    if (
+      task.createdById &&
+      task.createdById !== currentUserId &&
+      !mentionedIds.has(task.createdById)
+    ) {
+      watchers.add(task.createdById);
+    }
+
+    for (const watcherId of watchers) {
+      void this.notificationsService?.createNotification({
+        userId: watcherId,
+        type: NotificationType.TASK_UPDATED,
+        title: `New comment on "${task.title}"`,
+        message: `${authorName}: ${content.slice(0, 100)}`,
+        projectId,
+        metadata: { workspaceId, projectId, taskId },
+      });
+    }
   }
 
   async update(

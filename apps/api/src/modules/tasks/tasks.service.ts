@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import {
+  NotificationType,
   Prisma,
   TaskPriority,
   TaskStatus,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { TASK_ACTIVITY_ACTIONS } from './constants/task.constants';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { QueryTasksDto, QueryWorkspaceTasksDto } from './dto/query-tasks.dto';
@@ -73,6 +75,7 @@ export class TasksService {
     private readonly prisma: PrismaService,
     private readonly taskAccessService: TaskAccessService,
     private readonly taskActivitiesService: TaskActivitiesService,
+    @Optional() private readonly notificationsService?: NotificationsService,
   ) {}
 
   async create(
@@ -123,6 +126,21 @@ export class TasksService {
         assigneeId: task.assigneeId,
       },
     });
+
+    if (task.assigneeId && task.assigneeId !== currentUserId) {
+      void this.notificationsService?.createNotification({
+        userId: task.assigneeId,
+        type: NotificationType.TASK_ASSIGNED,
+        title: 'New task assigned to you',
+        message: `You were assigned to "${task.title}"`,
+        projectId,
+        metadata: {
+          workspaceId,
+          projectId,
+          taskId: task.id,
+        },
+      });
+    }
 
     return this.toTaskResponse(task);
   }
@@ -406,6 +424,50 @@ export class TasksService {
         oldValue: oldUpdated,
         newValue: newUpdated,
       });
+    }
+
+    if (
+      task.assigneeId &&
+      task.assigneeId !== before.assigneeId &&
+      task.assigneeId !== currentUserId
+    ) {
+      void this.notificationsService?.createNotification({
+        userId: task.assigneeId,
+        type: NotificationType.TASK_ASSIGNED,
+        title: 'New task assigned to you',
+        message: `You were assigned to "${task.title}"`,
+        projectId,
+        metadata: {
+          workspaceId,
+          projectId,
+          taskId: task.id,
+        },
+      });
+    }
+
+    if (before.status !== task.status) {
+      const recipients = new Set<string>();
+      if (task.assigneeId && task.assigneeId !== currentUserId) {
+        recipients.add(task.assigneeId);
+      }
+      if (task.createdById && task.createdById !== currentUserId) {
+        recipients.add(task.createdById);
+      }
+
+      for (const recipientId of recipients) {
+        void this.notificationsService?.createNotification({
+          userId: recipientId,
+          type: NotificationType.TASK_UPDATED,
+          title: 'Task status updated',
+          message: `"${task.title}" moved to ${task.status}`,
+          projectId,
+          metadata: {
+            workspaceId,
+            projectId,
+            taskId: task.id,
+          },
+        });
+      }
     }
 
     return this.toTaskResponse(task);
