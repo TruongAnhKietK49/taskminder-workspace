@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+
+import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import {
   PROJECT_STATUS_BADGE_CLASSES,
   PROJECT_STATUS_LABELS,
@@ -79,27 +82,36 @@ export function ProjectCard({
           </span>
         </div>
 
-        {canManage ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onEdit(project)}
-              className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Edit
-            </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            to={`${ROUTE_PATHS.TASKS}?projectId=${project.id}`}
+            className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100"
+          >
+            Tasks
+          </Link>
 
-            {!isArchived ? (
+          {canManage ? (
+            <>
               <button
                 type="button"
-                onClick={() => onArchive(project)}
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                onClick={() => onEdit(project)}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                Archive
+                Edit
               </button>
-            ) : null}
-          </div>
-        ) : null}
+
+              {!isArchived ? (
+                <button
+                  type="button"
+                  onClick={() => onArchive(project)}
+                  className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                >
+                  Archive
+                </button>
+              ) : null}
+            </>
+          ) : null}
+        </div>
       </div>
     </article>
   );

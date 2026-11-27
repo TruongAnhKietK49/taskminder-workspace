@@ -18,6 +18,8 @@ export const projectQueryKeys = {
   details: () => [...PROJECTS_QUERY_KEY, "detail"] as const,
   detail: (workspaceId: string | null, projectId: string | null) =>
     [...PROJECTS_QUERY_KEY, "detail", workspaceId, projectId] as const,
+  members: (workspaceId: string | null, projectId: string | null) =>
+    [...PROJECTS_QUERY_KEY, "members", workspaceId, projectId] as const,
 };
 
 function sortProjects(projects: Project[]) {
@@ -43,6 +45,18 @@ export function useProjectQuery(
     queryKey: projectQueryKeys.detail(workspaceId, projectId),
     queryFn: () =>
       projectService.getById(workspaceId as string, projectId as string),
+    enabled: Boolean(workspaceId && projectId),
+  });
+}
+
+export function useProjectMembersQuery(
+  workspaceId: string | null,
+  projectId: string | null,
+) {
+  return useQuery({
+    queryKey: projectQueryKeys.members(workspaceId, projectId),
+    queryFn: () =>
+      projectService.getMembers(workspaceId as string, projectId as string),
     enabled: Boolean(workspaceId && projectId),
   });
 }

@@ -52,3 +52,16 @@ export type ArchiveProjectVariables = {
   workspaceId: string;
   projectId: string;
 };
+
+export type ProjectMember = {
+  id: string;
+  projectId: string;
+  joinedAt: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    avatarUrl: string | null;
+    status: string;
+  };
+};

@@ -3,6 +3,7 @@ import type { ApiResponse } from "@/shared/types/api.types";
 import type {
   CreateProjectPayload,
   Project,
+  ProjectMember,
   UpdateProjectPayload,
 } from "@/features/projects/types/project.types";
 
@@ -12,6 +13,10 @@ type ProjectsResponseData = {
 
 type ProjectResponseData = {
   project: Project;
+};
+
+type ProjectMembersResponseData = {
+  members: ProjectMember[];
 };
 
 export const projectService = {
@@ -59,5 +64,13 @@ export const projectService = {
     );
 
     return response.data.data.project;
+  },
+
+  async getMembers(workspaceId: string, projectId: string) {
+    const response = await apiClient.get<
+      ApiResponse<ProjectMembersResponseData>
+    >(`/workspaces/${workspaceId}/projects/${projectId}/members`);
+
+    return response.data.data.members;
   },
 };
