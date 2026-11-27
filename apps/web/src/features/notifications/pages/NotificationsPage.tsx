@@ -12,6 +12,7 @@ import type {
   NotificationItem,
   NotificationType,
 } from "@/features/notifications/types/notification.types";
+import { SelectDropdown } from "@/shared/components/SelectDropdown";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 
 const NOTIFICATION_TYPE_OPTIONS: Array<{
@@ -135,20 +136,17 @@ export function NotificationsPage() {
           </button>
         </div>
 
-        <select
-          aria-label="Filter notification type"
+        <SelectDropdown
+          ariaLabel="Filter notification type"
+          align="right"
           value={typeFilter}
-          onChange={(event) =>
-            setTypeFilter(event.target.value as "" | NotificationType)
-          }
-          className="rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-blue-500"
-        >
-          {NOTIFICATION_TYPE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          className="w-52"
+          onChange={(val) => setTypeFilter(val as "" | NotificationType)}
+          options={NOTIFICATION_TYPE_OPTIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+        />
       </div>
 
       {notificationsQuery.isLoading ? (

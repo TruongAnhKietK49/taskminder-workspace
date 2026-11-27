@@ -33,6 +33,7 @@ import type {
 } from "@/features/tasks/types/task.types";
 import { canUserEditTask } from "@/features/tasks/utils/task-helpers";
 import { useWorkspaceSelection } from "@/features/workspaces/hooks/useWorkspaceSelection";
+import { SelectDropdown } from "@/shared/components/SelectDropdown";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 
 type ViewMode = "board" | "list";
@@ -492,69 +493,58 @@ export function TasksPage() {
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search task title or description..."
-              className="rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="rounded-xl border border-slate-200 px-3.5 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15"
             />
 
-            <select
-              aria-label="Filter by project"
+            <SelectDropdown
+              ariaLabel="Filter by project"
               value={projectFilter}
-              onChange={(event) =>
-                handleProjectFilterChange(event.target.value)
-              }
-              className="rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              <option value="">All projects</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+              onChange={handleProjectFilterChange}
+              options={[
+                { value: "", label: "All projects" },
+                ...projects.map((project) => ({
+                  value: project.id,
+                  label: project.name,
+                })),
+              ]}
+            />
 
-            <select
-              aria-label="Filter by status"
+            <SelectDropdown
+              ariaLabel="Filter by status"
               value={statusFilter}
-              onChange={(event) =>
-                setStatusFilter(event.target.value as "" | TaskStatus)
-              }
-              className="rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              <option value="">All active statuses</option>
-              {TASK_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setStatusFilter(val as "" | TaskStatus)}
+              options={[
+                { value: "", label: "All active statuses" },
+                ...TASK_STATUS_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                })),
+              ]}
+            />
 
-            <select
-              aria-label="Filter by priority"
+            <SelectDropdown
+              ariaLabel="Filter by priority"
               value={priorityFilter}
-              onChange={(event) =>
-                setPriorityFilter(event.target.value as "" | TaskPriority)
-              }
-              className="rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              <option value="">All priorities</option>
-              {TASK_PRIORITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setPriorityFilter(val as "" | TaskPriority)}
+              options={[
+                { value: "", label: "All priorities" },
+                ...TASK_PRIORITY_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                })),
+              ]}
+            />
 
-            <select
-              aria-label="Sort tasks"
+            <SelectDropdown
+              ariaLabel="Sort tasks"
               value={sortOptionValue}
-              onChange={(event) => setSortOptionValue(event.target.value)}
-              className="rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              {TASK_SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  Sort: {option.label}
-                </option>
-              ))}
-            </select>
+              align="right"
+              onChange={setSortOptionValue}
+              options={TASK_SORT_OPTIONS.map((option) => ({
+                value: option.value,
+                label: `Sort: ${option.label}`,
+              }))}
+            />
           </div>
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">

@@ -10,6 +10,7 @@ import {
   useWorkspaceReportQuery,
 } from "@/features/reports/hooks/useReports";
 import { useWorkspaceSelection } from "@/features/workspaces/hooks/useWorkspaceSelection";
+import { SelectDropdown } from "@/shared/components/SelectDropdown";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 
 const ENTITY_OPTIONS = [
@@ -346,18 +347,15 @@ export function ReportsPage() {
             </p>
           </div>
 
-          <select
-            aria-label="Lọc nhật ký hoạt động"
+          <SelectDropdown
+            ariaLabel="Lọc nhật ký hoạt động"
+            size="sm"
+            align="right"
             value={entityFilter}
-            onChange={(e) => setEntityFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium outline-none"
-          >
-            {ENTITY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            className="w-48"
+            onChange={setEntityFilter}
+            options={ENTITY_OPTIONS}
+          />
         </div>
 
         <div className="mt-4 divide-y divide-slate-100">

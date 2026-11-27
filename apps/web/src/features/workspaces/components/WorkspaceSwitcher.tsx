@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { CreateWorkspaceModal } from "@/features/workspaces/components/CreateWorkspaceModal";
 import { useWorkspaceSelection } from "@/features/workspaces/hooks/useWorkspaceSelection";
+import { SelectDropdown } from "@/shared/components/SelectDropdown";
 import { cn } from "@/shared/lib/cn";
 
 type WorkspaceSwitcherProps = {
@@ -18,9 +19,20 @@ export function WorkspaceSwitcher({
   const { workspaces, activeWorkspaceId, selectWorkspace, isLoading, isError } =
     useWorkspaceSelection();
 
-  let emptyOptionLabel = "Chưa có workspace";
-  if (isLoading) emptyOptionLabel = "Đang tải...";
-  if (isError) emptyOptionLabel = "Lỗi tải workspace";
+  let emptyPlaceholder = "Chưa có workspace";
+  if (isLoading) emptyPlaceholder = "Đang tải...";
+  if (isError) emptyPlaceholder = "Lỗi tải workspace";
+
+  const workspaceOptions = useMemo(
+    () =>
+      workspaces.map((ws) => ({
+        value: ws.id,
+        label: ws.name,
+        description: `${ws.memberCount} thành viên`,
+        badge: ws.currentUserRole,
+      })),
+    [workspaces],
+  );
 
   return (
     <>
@@ -35,25 +47,17 @@ export function WorkspaceSwitcher({
         ) : null}
 
         <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
-          <select
+          <SelectDropdown
             id={compact ? "mobile-workspace-switcher" : "workspace-switcher"}
+            ariaLabel="Chọn workspace"
+            size="sm"
             value={activeWorkspaceId ?? ""}
-            onChange={(event) => {
-              selectWorkspace(event.target.value || null);
-            }}
+            options={workspaceOptions}
+            placeholder={emptyPlaceholder}
             disabled={isLoading || workspaces.length === 0}
-            className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {workspaces.length === 0 && (
-              <option value="">{emptyOptionLabel}</option>
-            )}
-
-            {workspaces.map((workspace) => (
-              <option key={workspace.id} value={workspace.id}>
-                {workspace.name}
-              </option>
-            ))}
-          </select>
+            onChange={(nextId) => selectWorkspace(nextId || null)}
+            menuClassName="w-60"
+          />
 
           <button
             type="button"

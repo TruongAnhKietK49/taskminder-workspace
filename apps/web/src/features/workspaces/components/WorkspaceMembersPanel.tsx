@@ -10,10 +10,12 @@ import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 
 type WorkspaceMembersPanelProps = {
   workspace: Workspace;
+  embedded?: boolean;
 };
 
 export function WorkspaceMembersPanel({
   workspace,
+  embedded = false,
 }: WorkspaceMembersPanelProps) {
   const currentUser = useAuthStore((state) => state.user);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -26,38 +28,35 @@ export function WorkspaceMembersPanel({
 
   return (
     <>
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <header className="border-b border-slate-200 px-6 py-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">
-                Thành viên workspace
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Quản lý người dùng, quyền truy cập và lời mời vào workspace.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
-                {membersQuery.data?.length ?? workspace.memberCount} thành viên
-              </span>
-
-              {canManageMembers && (
-                <button
-                  type="button"
-                  onClick={() => setIsInviteModalOpen(true)}
-                  className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
-                >
-                  + Mời thành viên
-                </button>
-              )}
-            </div>
+      <section
+        className={
+          embedded
+            ? ""
+            : "rounded-2xl border border-slate-200 bg-white shadow-sm"
+        }
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-sm font-bold text-slate-950">
+              Thành viên workspace
+            </h2>
+            <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+              {membersQuery.data?.length ?? workspace.memberCount}
+            </span>
           </div>
-        </header>
 
-        <div className="space-y-5 p-6">
+          {canManageMembers && (
+            <button
+              type="button"
+              onClick={() => setIsInviteModalOpen(true)}
+              className="rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs shadow-blue-500/20 transition hover:from-blue-700 hover:to-sky-600"
+            >
+              + Mời thành viên
+            </button>
+          )}
+        </div>
+
+        <div className="space-y-4 p-4">
           {canManageMembers && (
             <PendingWorkspaceInvitationsList workspace={workspace} />
           )}

@@ -18,6 +18,7 @@ import {
 } from "@/features/workspaces/hooks/useWorkspaceMembers";
 import { useWorkspaceSelection } from "@/features/workspaces/hooks/useWorkspaceSelection";
 import type { WorkspaceRole } from "@/features/workspaces/types/workspace.types";
+import { SelectDropdown } from "@/shared/components/SelectDropdown";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { toast } from "@/shared/stores/toast.store";
 
@@ -177,29 +178,30 @@ export function MembersPage() {
           />
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label="Lọc theo vai trò"
+            <SelectDropdown
+              ariaLabel="Lọc theo vai trò"
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-            >
-              <option value="ALL">Tất cả vai trò</option>
-              <option value="OWNER">Chủ sở hữu</option>
-              <option value="ADMIN">Quản trị viên</option>
-              <option value="MEMBER">Thành viên</option>
-            </select>
+              onChange={(val) => setRoleFilter(val as RoleFilter)}
+              className="w-40"
+              options={[
+                { value: "ALL", label: "Tất cả vai trò" },
+                { value: "OWNER", label: "Chủ sở hữu" },
+                { value: "ADMIN", label: "Quản trị viên" },
+                { value: "MEMBER", label: "Thành viên" },
+              ]}
+            />
 
-            <select
-              aria-label="Lọc theo trạng thái"
+            <SelectDropdown
+              ariaLabel="Lọc theo trạng thái"
               value={presenceFilter}
-              onChange={(e) =>
-                setPresenceFilter(e.target.value as PresenceFilter)
-              }
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-            >
-              <option value="ALL">Mọi trạng thái</option>
-              <option value="ONLINE_ONLY">Đang trực tuyến</option>
-            </select>
+              align="right"
+              onChange={(val) => setPresenceFilter(val as PresenceFilter)}
+              className="w-44"
+              options={[
+                { value: "ALL", label: "Mọi trạng thái" },
+                { value: "ONLINE_ONLY", label: "Đang trực tuyến" },
+              ]}
+            />
           </div>
         </div>
 
@@ -217,7 +219,7 @@ export function MembersPage() {
             Không tìm thấy thành viên nào phù hợp.
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
             {filteredMembers.map((member) => {
               const isCurrentUser = member.user.id === currentUserId;
               const isOwner = member.role === "OWNER";
@@ -284,20 +286,21 @@ export function MembersPage() {
                     ) : null}
 
                     {canChangeRole ? (
-                      <select
+                      <SelectDropdown
+                        ariaLabel="Đổi vai trò thành viên"
+                        size="sm"
+                        align="right"
                         value={member.role}
-                        onChange={(e) =>
-                          void handleRoleChange(
-                            member.id,
-                            e.target.value as EditableRole,
-                          )
-                        }
                         disabled={updateRoleMutation.isPending}
-                        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium outline-none"
-                      >
-                        <option value="ADMIN">Quản trị viên</option>
-                        <option value="MEMBER">Thành viên</option>
-                      </select>
+                        className="w-36"
+                        onChange={(val) =>
+                          void handleRoleChange(member.id, val as EditableRole)
+                        }
+                        options={[
+                          { value: "ADMIN", label: "Quản trị viên" },
+                          { value: "MEMBER", label: "Thành viên" },
+                        ]}
+                      />
                     ) : (
                       <span className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600">
                         {WORKSPACE_ROLE_LABELS[member.role]}

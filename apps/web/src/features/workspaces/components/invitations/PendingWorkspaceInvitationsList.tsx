@@ -37,17 +37,18 @@ export function PendingWorkspaceInvitationsList({
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <section className="rounded-xl border border-sky-100 bg-sky-50/50 p-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-slate-950">Lời mời đang chờ</h3>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Theo dõi các email đã được mời nhưng chưa accept.
+          <h3 className="text-xs font-bold uppercase tracking-wide text-slate-800">
+            Lời mời đang chờ
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Các email đã được gửi lời mời nhưng chưa chấp nhận.
           </p>
         </div>
 
-        <span className="rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-600">
+        <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 shadow-2xs">
           {pendingInvitations.length} pending
         </span>
       </div>
@@ -106,7 +107,7 @@ export function PendingWorkspaceInvitationsList({
               <button
                 type="button"
                 onClick={() => void handleCopy(invitation.token)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-600 hover:text-white"
               >
                 Copy link
               </button>

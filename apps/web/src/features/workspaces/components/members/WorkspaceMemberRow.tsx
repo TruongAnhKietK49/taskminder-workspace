@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+import { PresenceDot } from "@/features/chat/components/PresenceDot";
+import { useRealtimeStore } from "@/features/chat/stores/realtime.store";
+import type { PresenceStatus } from "@/features/chat/types/chat.types";
 import { WORKSPACE_ROLE_LABELS } from "@/features/workspaces/constants/workspace.constants";
 import {
   useRemoveWorkspaceMember,
@@ -10,6 +13,7 @@ import type {
   WorkspaceMember,
   WorkspaceRole,
 } from "@/features/workspaces/types/workspace.types";
+import { SelectDropdown } from "@/shared/components/SelectDropdown";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 
 type WorkspaceMemberRowProps = {
@@ -40,6 +44,11 @@ export function WorkspaceMemberRow({
 }: WorkspaceMemberRowProps) {
   const updateRoleMutation = useUpdateWorkspaceMemberRole();
   const removeMemberMutation = useRemoveWorkspaceMember();
+  const presencesByUserId = useRealtimeStore(
+    (state) => state.presencesByUserId,
+  );
+  const presenceStatus: PresenceStatus =
+    presencesByUserId[member.user.id]?.status ?? "OFFLINE";
 
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -92,10 +101,14 @@ export function WorkspaceMemberRow({
   const isBusy = updateRoleMutation.isPending || removeMemberMutation.isPending;
 
   return (
-    <div className="border-b border-slate-100 px-5 py-4 last:border-b-0">
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+    <div className="border-b border-slate-100 px-4 py-3 last:border-b-0">
+      <div className="flex flex-wrap items-center gap-3.5">
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-white">
           {getInitials(member.user.fullName)}
+          <PresenceDot
+            status={presenceStatus}
+            className="absolute -bottom-0.5 -right-0.5"
+          />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -120,19 +133,21 @@ export function WorkspaceMemberRow({
 
         <div className="flex items-center gap-2">
           {canChangeRole ? (
-            <select
+            <SelectDropdown
+              ariaLabel="Đổi vai trò thành viên"
+              size="sm"
+              align="right"
               value={member.role}
-              onChange={(event) =>
-                void handleRoleChange(event.target.value as EditableRole)
-              }
               disabled={isBusy}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500 disabled:bg-slate-100"
-            >
-              <option value="ADMIN">Quản trị viên</option>
-              <option value="MEMBER">Thành viên</option>
-            </select>
+              className="w-36"
+              onChange={(val) => void handleRoleChange(val as EditableRole)}
+              options={[
+                { value: "ADMIN", label: "Quản trị viên" },
+                { value: "MEMBER", label: "Thành viên" },
+              ]}
+            />
           ) : (
-            <span className="min-w-28 rounded-lg bg-slate-100 px-3 py-2 text-center text-sm font-medium text-slate-600">
+            <span className="min-w-24 rounded-xl bg-slate-100 px-3 py-1.5 text-center text-xs font-semibold text-slate-600">
               {WORKSPACE_ROLE_LABELS[member.role]}
             </span>
           )}
