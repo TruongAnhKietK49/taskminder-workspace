@@ -6,6 +6,7 @@ import { ProfileDropdown } from "@/features/auth/components/ProfileDropdown";
 import { NotificationBellDropdown } from "@/features/notifications/components/NotificationBellDropdown";
 import { GlobalSearchModal } from "@/features/search/components/GlobalSearchModal";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/WorkspaceSwitcher";
+import { TaskMinderLogo } from "@/shared/components/TaskMinderLogo";
 import { cn } from "@/shared/lib/cn";
 import { useThemeStore } from "@/shared/stores/theme.store";
 
@@ -66,10 +67,7 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-slate-200 bg-white p-4 lg:flex">
-        <div>
-          <p className="text-lg font-bold">TaskMinder</p>
-          <p className="text-sm text-slate-500">Workspace</p>
-        </div>
+        <TaskMinderLogo size="sm" subtitle="Workspace" />
 
         <WorkspaceSwitcher className="mt-6" />
 
