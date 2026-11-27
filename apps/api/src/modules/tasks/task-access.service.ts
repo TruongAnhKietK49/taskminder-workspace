@@ -105,6 +105,42 @@ export class TaskAccessService {
     );
   }
 
+  async assertCanAssignTask(
+    workspaceId: string,
+    currentUserId: string,
+    targetAssigneeId?: string | null,
+    existingAssigneeId?: string | null,
+  ) {
+    const nextAssignee = targetAssigneeId || null;
+    const prevAssignee = existingAssigneeId ?? null;
+
+    if (nextAssignee === prevAssignee) {
+      return;
+    }
+
+    const isSelfAssign =
+      nextAssignee === currentUserId && prevAssignee === null;
+    const isSelfUnassign =
+      nextAssignee === null && prevAssignee === currentUserId;
+
+    if (isSelfAssign || isSelfUnassign) {
+      return;
+    }
+
+    await this.workspaceAccessService.assertPermission(
+      workspaceId,
+      currentUserId,
+      Permission.TASK_ASSIGN,
+    );
+  }
+
+  async getVisibleProjectsWhere(workspaceId: string, currentUserId: string) {
+    return this.projectAccessService.getVisibleProjectsWhere(
+      workspaceId,
+      currentUserId,
+    );
+  }
+
   async assertAssigneeIsProjectMember(
     projectId: string,
     assigneeId?: string | null,

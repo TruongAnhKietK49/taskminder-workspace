@@ -6,6 +6,7 @@ import {
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { QueryTasksDto, QueryWorkspaceTasksDto } from './dto/query-tasks.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskAccessService } from './task-access.service';
 
@@ -43,6 +44,21 @@ type TaskWithDetails = Prisma.TaskGetPayload<{
   select: typeof TASK_SELECT;
 }>;
 
+const WORKSPACE_TASK_SELECT = {
+  ...TASK_SELECT,
+  project: {
+    select: {
+      id: true,
+      name: true,
+      status: true,
+    },
+  },
+} as const;
+
+type WorkspaceTaskWithDetails = Prisma.TaskGetPayload<{
+  select: typeof WORKSPACE_TASK_SELECT;
+}>;
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -60,6 +76,12 @@ export class TasksService {
       workspaceId,
       projectId,
       currentUserId,
+    );
+
+    await this.taskAccessService.assertCanAssignTask(
+      workspaceId,
+      currentUserId,
+      dto.assigneeId,
     );
 
     await this.taskAccessService.assertAssigneeIsProjectMember(
@@ -84,35 +106,138 @@ export class TasksService {
     return this.toTaskResponse(task);
   }
 
-  async findAll(workspaceId: string, projectId: string, currentUserId: string) {
+  async findAll(
+    workspaceId: string,
+    projectId: string,
+    currentUserId: string,
+    query: QueryTasksDto = {},
+  ) {
     await this.taskAccessService.assertCanReadProjectTasks(
       workspaceId,
       projectId,
       currentUserId,
     );
 
+    const where: Prisma.TaskWhereInput = {
+      ...this.buildTaskFilters(query, currentUserId),
+      projectId,
+      project: {
+        workspaceId,
+      },
+    };
+
+    const tasks = await this.prisma.task.findMany({
+      where,
+      select: TASK_SELECT,
+      orderBy: this.buildTaskOrderBy(query),
+    });
+
+    return tasks.map((task) => this.toTaskResponse(task));
+  }
+
+  async findWorkspaceTasks(
+    workspaceId: string,
+    currentUserId: string,
+    query: QueryWorkspaceTasksDto = {},
+  ) {
+    const visibleProjectWhere =
+      await this.taskAccessService.getVisibleProjectsWhere(
+        workspaceId,
+        currentUserId,
+      );
+
+    const where: Prisma.TaskWhereInput = {
+      ...this.buildTaskFilters(query, currentUserId),
+      project: visibleProjectWhere,
+      ...(query.projectId ? { projectId: query.projectId } : {}),
+    };
+
+    const tasks = await this.prisma.task.findMany({
+      where,
+      select: WORKSPACE_TASK_SELECT,
+      orderBy: this.buildTaskOrderBy(query),
+    });
+
+    return tasks.map((task) => this.toWorkspaceTaskResponse(task));
+  }
+
+  async getWorkspaceTaskSummary(workspaceId: string, currentUserId: string) {
+    const visibleProjectWhere =
+      await this.taskAccessService.getVisibleProjectsWhere(
+        workspaceId,
+        currentUserId,
+      );
+
     const tasks = await this.prisma.task.findMany({
       where: {
-        projectId,
-        project: {
-          workspaceId,
-        },
+        project: visibleProjectWhere,
         status: {
           not: TaskStatus.ARCHIVED,
         },
       },
-      select: TASK_SELECT,
-      orderBy: [
-        {
-          dueDate: 'asc',
-        },
-        {
-          updatedAt: 'desc',
-        },
-      ],
+      select: {
+        status: true,
+        priority: true,
+        dueDate: true,
+        assigneeId: true,
+      },
     });
 
-    return tasks.map((task) => this.toTaskResponse(task));
+    const now = new Date();
+    const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const byStatus: Record<
+      Exclude<TaskStatus, typeof TaskStatus.ARCHIVED>,
+      number
+    > = {
+      [TaskStatus.TODO]: 0,
+      [TaskStatus.IN_PROGRESS]: 0,
+      [TaskStatus.REVIEW]: 0,
+      [TaskStatus.DONE]: 0,
+      [TaskStatus.BLOCKED]: 0,
+    };
+
+    const byPriority: Record<TaskPriority, number> = {
+      [TaskPriority.LOW]: 0,
+      [TaskPriority.MEDIUM]: 0,
+      [TaskPriority.HIGH]: 0,
+      [TaskPriority.URGENT]: 0,
+    };
+
+    let assignedToMe = 0;
+    let overdue = 0;
+    let dueSoon = 0;
+
+    for (const task of tasks) {
+      if (task.status !== TaskStatus.ARCHIVED) {
+        byStatus[task.status] += 1;
+      }
+
+      byPriority[task.priority] += 1;
+
+      if (task.status !== TaskStatus.DONE) {
+        if (task.assigneeId === currentUserId) {
+          assignedToMe += 1;
+        }
+
+        if (task.dueDate !== null) {
+          if (task.dueDate < now) {
+            overdue += 1;
+          } else if (task.dueDate <= sevenDaysLater) {
+            dueSoon += 1;
+          }
+        }
+      }
+    }
+
+    return {
+      totalActive: tasks.length,
+      byStatus,
+      byPriority,
+      assignedToMe,
+      overdue,
+      dueSoon,
+    };
   }
 
   async findOne(
@@ -139,12 +264,21 @@ export class TasksService {
     currentUserId: string,
     dto: UpdateTaskDto,
   ) {
-    await this.taskAccessService.assertCanUpdateTask(
+    const existingTask = await this.taskAccessService.assertCanUpdateTask(
       workspaceId,
       projectId,
       taskId,
       currentUserId,
     );
+
+    if (dto.assigneeId !== undefined) {
+      await this.taskAccessService.assertCanAssignTask(
+        workspaceId,
+        currentUserId,
+        dto.assigneeId,
+        existingTask.assigneeId,
+      );
+    }
 
     await this.taskAccessService.assertAssigneeIsProjectMember(
       projectId,
@@ -165,7 +299,7 @@ export class TasksService {
     }
 
     if (dto.description !== undefined) {
-      updateData.description = dto.description.trim() || null;
+      updateData.description = dto.description?.trim() || null;
     }
 
     if (dto.status !== undefined) {
@@ -244,6 +378,70 @@ export class TasksService {
     return task;
   }
 
+  private buildTaskFilters(
+    query: QueryTasksDto | QueryWorkspaceTasksDto,
+    currentUserId: string,
+  ): Prisma.TaskWhereInput {
+    const where: Prisma.TaskWhereInput = {};
+
+    if (query.status !== undefined) {
+      where.status = query.status;
+    } else if (!query.includeArchived) {
+      where.status = {
+        not: TaskStatus.ARCHIVED,
+      };
+    }
+
+    if (query.priority !== undefined) {
+      where.priority = query.priority;
+    }
+
+    if (query.unassigned === true) {
+      where.assigneeId = null;
+    } else if ('assignedToMe' in query && query.assignedToMe === true) {
+      where.assigneeId = currentUserId;
+    } else if (query.assigneeId) {
+      where.assigneeId = query.assigneeId;
+    }
+
+    const search = query.search?.trim();
+    if (search) {
+      where.OR = [
+        {
+          title: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    return where;
+  }
+
+  private buildTaskOrderBy(
+    query: QueryTasksDto,
+  ): Prisma.TaskOrderByWithRelationInput[] {
+    if (!query.sortBy) {
+      return [{ dueDate: 'asc' }, { updatedAt: 'desc' }];
+    }
+
+    const order =
+      query.sortOrder ?? (query.sortBy === 'dueDate' ? 'asc' : 'desc');
+
+    if (query.sortBy === 'updatedAt') {
+      return [{ updatedAt: order }];
+    }
+
+    return [{ [query.sortBy]: order }, { updatedAt: 'desc' }];
+  }
+
   private toTaskResponse(task: TaskWithDetails) {
     return {
       id: task.id,
@@ -259,6 +457,13 @@ export class TasksService {
       updatedAt: task.updatedAt,
       createdBy: task.createdBy,
       assignee: task.assignee,
+    };
+  }
+
+  private toWorkspaceTaskResponse(task: WorkspaceTaskWithDetails) {
+    return {
+      ...this.toTaskResponse(task),
+      project: task.project,
     };
   }
 }
