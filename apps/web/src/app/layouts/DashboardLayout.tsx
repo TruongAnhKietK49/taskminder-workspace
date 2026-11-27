@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { ProfileDropdown } from "@/features/auth/components/ProfileDropdown";
 import { NotificationBellDropdown } from "@/features/notifications/components/NotificationBellDropdown";
+import { GlobalSearchModal } from "@/features/search/components/GlobalSearchModal";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/WorkspaceSwitcher";
 import { cn } from "@/shared/lib/cn";
 import { useThemeStore } from "@/shared/stores/theme.store";
@@ -48,6 +50,18 @@ const navigationItems = [
 
 export function DashboardLayout() {
   const { theme, toggleTheme } = useThemeStore();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
@@ -98,6 +112,29 @@ export function DashboardLayout() {
 
               <button
                 type="button"
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="Global search"
+                className="flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                <span className="hidden md:inline">Tìm nhanh</span>
+                <kbd className="hidden rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 sm:inline">
+                  Ctrl+K
+                </kbd>
+              </button>
+
+              <button
+                type="button"
                 onClick={toggleTheme}
                 aria-label="Toggle Light/Dark theme"
                 title={
@@ -128,6 +165,11 @@ export function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      <GlobalSearchModal
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </div>
   );
 }

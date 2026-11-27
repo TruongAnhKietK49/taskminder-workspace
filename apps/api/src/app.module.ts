@@ -7,6 +7,9 @@ import { ProjectsModule } from './modules/projects/project.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { SearchModule } from './modules/search/search.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -16,12 +19,15 @@ import { PrismaModule } from './prisma/prisma.module';
     }),
     PrismaModule,
     NotificationsModule,
+    ActivityLogsModule,
     ProjectsModule,
     HealthModule,
     AuthModule,
     WorkspacesModule,
     TasksModule,
     ChatModule,
+    ReportsModule,
+    SearchModule,
   ],
 })
 export class AppModule {}

@@ -6,6 +6,7 @@ import {
   TaskStatus,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TASK_ACTIVITY_ACTIONS } from './constants/task.constants';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -76,6 +77,7 @@ export class TasksService {
     private readonly taskAccessService: TaskAccessService,
     private readonly taskActivitiesService: TaskActivitiesService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional() private readonly activityLogsService?: ActivityLogsService,
   ) {}
 
   async create(
@@ -141,6 +143,16 @@ export class TasksService {
         },
       });
     }
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'TASK',
+      entityId: task.id,
+      action: 'TASK_CREATED',
+      summary: `Tạo công việc "${task.title}"`,
+      metadata: { projectId },
+    });
 
     return this.toTaskResponse(task);
   }
@@ -468,6 +480,30 @@ export class TasksService {
           },
         });
       }
+
+      void this.activityLogsService?.record({
+        workspaceId,
+        actorId: currentUserId,
+        entityType: 'TASK',
+        entityId: task.id,
+        action: 'TASK_STATUS_CHANGED',
+        summary: `Chuyển trạng thái "${task.title}" sang ${task.status}`,
+        metadata: { projectId, from: before.status, to: task.status },
+      });
+    }
+
+    if (before.assigneeId !== task.assigneeId) {
+      void this.activityLogsService?.record({
+        workspaceId,
+        actorId: currentUserId,
+        entityType: 'TASK',
+        entityId: task.id,
+        action: 'TASK_ASSIGNEE_CHANGED',
+        summary: task.assignee
+          ? `Giao "${task.title}" cho ${task.assignee.fullName}`
+          : `Bỏ phân công "${task.title}"`,
+        metadata: { projectId },
+      });
     }
 
     return this.toTaskResponse(task);
@@ -501,6 +537,16 @@ export class TasksService {
       actorId: currentUserId,
       action: TASK_ACTIVITY_ACTIONS.TASK_ARCHIVED,
       newValue: { status: TaskStatus.ARCHIVED },
+    });
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'TASK',
+      entityId: task.id,
+      action: 'TASK_ARCHIVED',
+      summary: `Lưu trữ công việc "${task.title}"`,
+      metadata: { projectId },
     });
 
     return this.toTaskResponse(task);

@@ -4,9 +4,11 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { WorkspaceRole } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AddWorkspaceMemberDto } from './dto/add-workspace-member.dto';
 import { UpdateWorkspaceMemberRoleDto } from './dto/update-workspace-member-role.dto';
 import { WorkspaceAccessService } from './workspace-access.service';
@@ -32,6 +34,7 @@ export class WorkspaceMembersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
+    @Optional() private readonly activityLogsService?: ActivityLogsService,
   ) {}
 
   async findAll(workspaceId: string, currentUserId: string) {
@@ -112,7 +115,7 @@ export class WorkspaceMembersService {
     }
 
     try {
-      return await this.prisma.workspaceMember.create({
+      const created = await this.prisma.workspaceMember.create({
         data: {
           workspaceId,
           userId: user.id,
@@ -120,6 +123,17 @@ export class WorkspaceMembersService {
         },
         select: WORKSPACE_MEMBER_SELECT,
       });
+
+      void this.activityLogsService?.record({
+        workspaceId,
+        actorId: currentUserId,
+        entityType: 'MEMBER',
+        entityId: created.id,
+        action: 'MEMBER_ADDED',
+        summary: `Thêm ${created.user.fullName} (${dto.role}) vào workspace`,
+      });
+
+      return created;
     } catch (error) {
       if (this.isUniqueConstraintError(error)) {
         throw new ConflictException(
@@ -159,7 +173,7 @@ export class WorkspaceMembersService {
       });
     }
 
-    return this.prisma.workspaceMember.update({
+    const updated = await this.prisma.workspaceMember.update({
       where: {
         id: targetMember.id,
       },
@@ -168,6 +182,17 @@ export class WorkspaceMembersService {
       },
       select: WORKSPACE_MEMBER_SELECT,
     });
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'MEMBER',
+      entityId: updated.id,
+      action: 'MEMBER_ROLE_UPDATED',
+      summary: `Đổi vai trò của ${updated.user.fullName} thành ${dto.role}`,
+    });
+
+    return updated;
   }
 
   async remove(
@@ -209,6 +234,15 @@ export class WorkspaceMembersService {
       where: {
         id: targetMember.id,
       },
+    });
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'MEMBER',
+      entityId: targetMember.id,
+      action: 'MEMBER_REMOVED',
+      summary: `Xóa thành viên khỏi workspace`,
     });
   }
 

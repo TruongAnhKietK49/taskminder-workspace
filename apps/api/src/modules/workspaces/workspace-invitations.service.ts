@@ -15,6 +15,7 @@ import {
   WorkspaceRole,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { InviteWorkspaceMemberDto } from './dto/invite-workspace-member.dto';
 import { WorkspaceAccessService } from './workspace-access.service';
@@ -74,6 +75,7 @@ export class WorkspaceInvitationsService {
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional() private readonly activityLogsService?: ActivityLogsService,
   ) {}
 
   async create(
@@ -187,6 +189,15 @@ export class WorkspaceInvitationsService {
         });
       }
 
+      void this.activityLogsService?.record({
+        workspaceId,
+        actorId: currentUserId,
+        entityType: 'INVITATION',
+        entityId: invitation.id,
+        action: 'INVITATION_SENT',
+        summary: `Gửi lời mời tham gia workspace tới ${normalizedEmail} (${dto.role})`,
+      });
+
       return invitation;
     } catch (error) {
       if (this.isUniqueConstraintError(error)) {
@@ -277,8 +288,8 @@ export class WorkspaceInvitationsService {
     }
 
     try {
-      return await this.prisma.$transaction(async (transaction) => {
-        const member = await transaction.workspaceMember.create({
+      const member = await this.prisma.$transaction(async (transaction) => {
+        const createdMember = await transaction.workspaceMember.create({
           data: {
             workspaceId: invitation.workspaceId,
             userId: currentUser.id,
@@ -298,8 +309,19 @@ export class WorkspaceInvitationsService {
           },
         });
 
-        return member;
+        return createdMember;
       });
+
+      void this.activityLogsService?.record({
+        workspaceId: invitation.workspaceId,
+        actorId: currentUser.id,
+        entityType: 'INVITATION',
+        entityId: invitation.id,
+        action: 'INVITATION_ACCEPTED',
+        summary: `${member.user.fullName} đã chấp nhận lời mời tham gia workspace`,
+      });
+
+      return member;
     } catch (error) {
       if (this.isUniqueConstraintError(error)) {
         throw new ConflictException(

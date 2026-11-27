@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { Prisma, ProjectStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectAccessService } from './project-access.service';
@@ -38,6 +39,7 @@ export class ProjectsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly projectAccessService: ProjectAccessService,
+    @Optional() private readonly activityLogsService?: ActivityLogsService,
   ) {}
 
   async create(
@@ -68,6 +70,15 @@ export class ProjectsService {
         },
         select: PROJECT_SELECT,
       });
+    });
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'PROJECT',
+      entityId: project.id,
+      action: 'PROJECT_CREATED',
+      summary: `Tạo dự án "${project.name}"`,
     });
 
     return this.toProjectResponse(project, true);
@@ -145,6 +156,15 @@ export class ProjectsService {
       select: PROJECT_SELECT,
     });
 
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'PROJECT',
+      entityId: project.id,
+      action: 'PROJECT_UPDATED',
+      summary: `Cập nhật dự án "${project.name}" (${project.status})`,
+    });
+
     return this.toProjectResponse(project, true);
   }
 
@@ -163,6 +183,15 @@ export class ProjectsService {
         status: ProjectStatus.ARCHIVED,
       },
       select: PROJECT_SELECT,
+    });
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: currentUserId,
+      entityType: 'PROJECT',
+      entityId: project.id,
+      action: 'PROJECT_ARCHIVED',
+      summary: `Lưu trữ dự án "${project.name}"`,
     });
 
     return this.toProjectResponse(project, true);

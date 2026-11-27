@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { RecentActivityCard } from "@/features/dashboard/components/RecentActivityCard";
 import { SystemHealthCard } from "@/features/dashboard/components/SystemHealthCard";
 import { TaskBreakdownCard } from "@/features/dashboard/components/TaskBreakdownCard";
 import { UpcomingDeadlinesCard } from "@/features/dashboard/components/UpcomingDeadlinesCard";
@@ -354,6 +355,8 @@ export function DashboardPage() {
           </div>
         )}
       </section>
+
+      <RecentActivityCard workspaceId={activeWorkspaceId} />
 
       <SystemHealthCard />
     </div>

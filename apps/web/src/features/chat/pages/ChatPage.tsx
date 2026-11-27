@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { ChatMessageArea } from "@/features/chat/components/ChatMessageArea";
@@ -20,12 +21,14 @@ import { useWorkspaceSelection } from "@/features/workspaces/hooks/useWorkspaceS
 
 export function ChatPage() {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const initialConversationId = searchParams.get("conversationId");
   const currentUserId = useAuthStore((state) => state.user?.id);
   const { activeWorkspace, activeWorkspaceId } = useWorkspaceSelection();
 
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
-  >(null);
+  >(initialConversationId);
   const [isNewDmOpen, setIsNewDmOpen] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 

@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { WorkspaceRole } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { WorkspaceAccessService } from './workspace-access.service';
@@ -19,6 +20,7 @@ export class WorkspacesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspaceAccessService: WorkspaceAccessService,
+    @Optional() private readonly activityLogsService?: ActivityLogsService,
   ) {}
 
   async create(userId: string, createWorkspaceDto: CreateWorkspaceDto) {
@@ -26,7 +28,7 @@ export class WorkspacesService {
     const normalizedDescription =
       createWorkspaceDto.description?.trim() || null;
 
-    return this.prisma.$transaction(async (transaction) => {
+    const created = await this.prisma.$transaction(async (transaction) => {
       const workspace = await transaction.workspace.create({
         data: {
           name: normalizedName,
@@ -50,6 +52,17 @@ export class WorkspacesService {
         memberCount: 1,
       };
     });
+
+    void this.activityLogsService?.record({
+      workspaceId: created.id,
+      actorId: userId,
+      entityType: 'WORKSPACE',
+      entityId: created.id,
+      action: 'WORKSPACE_CREATED',
+      summary: `Tạo workspace "${created.name}"`,
+    });
+
+    return created;
   }
 
   async findAll(userId: string) {
@@ -153,13 +166,24 @@ export class WorkspacesService {
       updateData.description = updateWorkspaceDto.description.trim();
     }
 
-    return this.prisma.workspace.update({
+    const updated = await this.prisma.workspace.update({
       where: {
         id: workspaceId,
       },
       data: updateData,
       select: WORKSPACE_SELECT,
     });
+
+    void this.activityLogsService?.record({
+      workspaceId,
+      actorId: userId,
+      entityType: 'WORKSPACE',
+      entityId: workspaceId,
+      action: 'WORKSPACE_UPDATED',
+      summary: `Cập nhật thông tin workspace "${updated.name}"`,
+    });
+
+    return updated;
   }
 
   async remove(workspaceId: string, userId: string) {
