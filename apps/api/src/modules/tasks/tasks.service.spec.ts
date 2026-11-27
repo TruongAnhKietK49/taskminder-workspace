@@ -1,6 +1,8 @@
 import { TaskPriority, TaskStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TASK_ACTIVITY_ACTIONS } from './constants/task.constants';
 import { TaskAccessService } from './task-access.service';
+import { TaskActivitiesService } from './task-activities.service';
 import { TasksService } from './tasks.service';
 
 describe('TasksService', () => {
@@ -29,6 +31,10 @@ describe('TasksService', () => {
       avatarUrl: null,
     },
     assignee: null,
+    _count: {
+      comments: 0,
+      attachments: 0,
+    },
   };
 
   let service: TasksService;
@@ -44,6 +50,7 @@ describe('TasksService', () => {
   let assertCanAssignTaskMock: jest.Mock;
   let assertAssigneeIsProjectMemberMock: jest.Mock;
   let getVisibleProjectsWhereMock: jest.Mock;
+  let recordActivityMock: jest.Mock;
 
   beforeEach(() => {
     createMock = jest.fn();
@@ -62,6 +69,7 @@ describe('TasksService', () => {
     assertCanAssignTaskMock = jest.fn().mockResolvedValue(undefined);
     assertAssigneeIsProjectMemberMock = jest.fn().mockResolvedValue(undefined);
     getVisibleProjectsWhereMock = jest.fn().mockResolvedValue({ workspaceId });
+    recordActivityMock = jest.fn().mockResolvedValue(undefined);
 
     const prismaMock = {
       task: {
@@ -82,11 +90,15 @@ describe('TasksService', () => {
       getVisibleProjectsWhere: getVisibleProjectsWhereMock,
     } as unknown as TaskAccessService;
 
-    service = new TasksService(prismaMock, taskAccessMock);
+    const taskActivitiesMock = {
+      record: recordActivityMock,
+    } as unknown as TaskActivitiesService;
+
+    service = new TasksService(prismaMock, taskAccessMock, taskActivitiesMock);
   });
 
-  it('create trims text, checks assign RBAC, and creates task with defaults', async () => {
-    createMock.mockResolvedValue(baseTask);
+  it('create trims text, checks assign RBAC, creates task, and records TASK_CREATED activity', async () => {
+    createMock.mockResolvedValue({ ...baseTask, assigneeId: otherUserId });
 
     const result = await service.create(workspaceId, projectId, userId, {
       title: '  Sample Task  ',
@@ -118,6 +130,13 @@ describe('TasksService', () => {
       priority: TaskPriority.MEDIUM,
       assigneeId: otherUserId,
     });
+    expect(recordActivityMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId,
+        actorId: userId,
+        action: TASK_ACTIVITY_ACTIONS.TASK_CREATED,
+      }),
+    );
     expect(result.id).toBe(taskId);
   });
 
@@ -189,15 +208,27 @@ describe('TasksService', () => {
     });
   });
 
-  it('update clears nullable fields cleanly and checks assign RBAC with existing assignee', async () => {
+  it('update clears nullable fields, records status & assignee activity, and checks assign RBAC', async () => {
+    findFirstMock.mockResolvedValue({
+      ...baseTask,
+      assigneeId: otherUserId,
+      assignee: {
+        id: otherUserId,
+        email: 'other@example.com',
+        fullName: 'Other User',
+        avatarUrl: null,
+      },
+    });
     updateMock.mockResolvedValue({
       ...baseTask,
+      status: TaskStatus.IN_PROGRESS,
       description: null,
       assigneeId: null,
       dueDate: null,
     });
 
     await service.update(workspaceId, projectId, taskId, userId, {
+      status: TaskStatus.IN_PROGRESS,
       description: null,
       assigneeId: null,
       dueDate: null,
@@ -213,15 +244,26 @@ describe('TasksService', () => {
       expect.objectContaining({
         where: { id: taskId },
         data: {
+          status: TaskStatus.IN_PROGRESS,
           description: null,
           assigneeId: null,
           dueDate: null,
         },
       }),
     );
+    expect(recordActivityMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: TASK_ACTIVITY_ACTIONS.STATUS_CHANGED,
+      }),
+    );
+    expect(recordActivityMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: TASK_ACTIVITY_ACTIONS.ASSIGNEE_CHANGED,
+      }),
+    );
   });
 
-  it('archive sets task status to ARCHIVED', async () => {
+  it('archive sets task status to ARCHIVED and records TASK_ARCHIVED activity', async () => {
     updateMock.mockResolvedValue({
       ...baseTask,
       status: TaskStatus.ARCHIVED,
@@ -239,6 +281,13 @@ describe('TasksService', () => {
       projectId,
       taskId,
       userId,
+    );
+    expect(recordActivityMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId,
+        actorId: userId,
+        action: TASK_ACTIVITY_ACTIONS.TASK_ARCHIVED,
+      }),
     );
     expect(result.status).toBe(TaskStatus.ARCHIVED);
   });

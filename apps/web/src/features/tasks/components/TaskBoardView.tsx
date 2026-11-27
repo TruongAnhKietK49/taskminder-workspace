@@ -17,6 +17,7 @@ type TaskBoardViewProps = {
   updatingTaskId: string | null;
   canEditTask: (task: WorkspaceTask) => boolean;
   canCreateTask: boolean;
+  onOpenDetail: (task: WorkspaceTask) => void;
   onStatusChange: (task: WorkspaceTask, status: TaskStatus) => void;
   onQuickCreate: (status: ActiveTaskStatus) => void;
   onEdit: (task: WorkspaceTask) => void;
@@ -29,6 +30,7 @@ export function TaskBoardView({
   updatingTaskId,
   canEditTask,
   canCreateTask,
+  onOpenDetail,
   onStatusChange,
   onQuickCreate,
   onEdit,
@@ -134,6 +136,7 @@ export function TaskBoardView({
                       showProjectBadge={showProjectBadge}
                       canEdit={canEditTask(task)}
                       isUpdating={updatingTaskId === task.id}
+                      onOpenDetail={onOpenDetail}
                       onStatusChange={onStatusChange}
                       onEdit={onEdit}
                       onArchive={onArchive}
@@ -167,6 +170,7 @@ export function TaskBoardView({
                 showProjectBadge={showProjectBadge}
                 canEdit={canEditTask(task)}
                 isUpdating={updatingTaskId === task.id}
+                onOpenDetail={onOpenDetail}
                 onStatusChange={onStatusChange}
                 onEdit={onEdit}
                 onArchive={onArchive}

@@ -16,6 +16,7 @@ type TaskListViewProps = {
   tasks: WorkspaceTask[];
   updatingTaskId: string | null;
   canEditTask: (task: WorkspaceTask) => boolean;
+  onOpenDetail: (task: WorkspaceTask) => void;
   onStatusChange: (task: WorkspaceTask, status: TaskStatus) => void;
   onEdit: (task: WorkspaceTask) => void;
   onArchive: (task: WorkspaceTask) => void;
@@ -25,6 +26,7 @@ export function TaskListView({
   tasks,
   updatingTaskId,
   canEditTask,
+  onOpenDetail,
   onStatusChange,
   onEdit,
   onArchive,
@@ -60,11 +62,28 @@ export function TaskListView({
                 ].join(" ")}
               >
                 <td className="max-w-xs px-4 py-3.5">
-                  <p className="font-semibold text-slate-950">{task.title}</p>
+                  <button
+                    type="button"
+                    onClick={() => onOpenDetail(task)}
+                    className="text-left font-semibold text-slate-950 hover:text-blue-600"
+                  >
+                    {task.title}
+                  </button>
                   {task.description ? (
                     <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
                       {task.description}
                     </p>
+                  ) : null}
+                  {(task.commentCount ?? 0) > 0 ||
+                  (task.attachmentCount ?? 0) > 0 ? (
+                    <div className="mt-1 flex items-center gap-2.5 text-[11px] text-slate-400">
+                      {(task.commentCount ?? 0) > 0 ? (
+                        <span>💬 {task.commentCount}</span>
+                      ) : null}
+                      {(task.attachmentCount ?? 0) > 0 ? (
+                        <span>📎 {task.attachmentCount}</span>
+                      ) : null}
+                    </div>
                   ) : null}
                 </td>
 

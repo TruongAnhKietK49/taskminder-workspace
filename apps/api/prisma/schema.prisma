@@ -69,8 +69,11 @@ model User {
   createdProjects Project[]       @relation("ProjectCreatedBy")
   projectMembers  ProjectMember[]
 
-  createdTasks  Task[] @relation("TaskCreatedBy")
-  assignedTasks Task[] @relation("TaskAssignee")
+  createdTasks        Task[]           @relation("TaskCreatedBy")
+  assignedTasks       Task[]           @relation("TaskAssignee")
+  taskComments        TaskComment[]    @relation("TaskCommentAuthor")
+  uploadedAttachments TaskAttachment[] @relation("TaskAttachmentUploader")
+  taskActivities      TaskActivity[]   @relation("TaskActivityActor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -227,6 +230,10 @@ model Task {
 
   dueDate DateTime? @map("due_date")
 
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+  activities  TaskActivity[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -237,4 +244,56 @@ model Task {
   @@index([priority])
   @@index([dueDate])
   @@map("tasks")
+}
+
+model TaskComment {
+  id       String    @id @default(uuid()) @db.Uuid
+  taskId   String    @map("task_id") @db.Uuid
+  authorId String    @map("author_id") @db.Uuid
+  content  String
+  editedAt DateTime? @map("edited_at")
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation("TaskCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([taskId, createdAt])
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id           String @id @default(uuid()) @db.Uuid
+  taskId       String @map("task_id") @db.Uuid
+  uploadedById String @map("uploaded_by_id") @db.Uuid
+  originalName String @map("original_name")
+  storageKey   String @unique @map("storage_key")
+  mimeType     String @map("mime_type")
+  size         Int
+
+  task       Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation("TaskAttachmentUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([taskId, createdAt])
+  @@map("task_attachments")
+}
+
+model TaskActivity {
+  id       String @id @default(uuid()) @db.Uuid
+  taskId   String @map("task_id") @db.Uuid
+  actorId  String @map("actor_id") @db.Uuid
+  action   String
+  oldValue Json?  @map("old_value")
+  newValue Json?  @map("new_value")
+
+  task  Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actor User @relation("TaskActivityActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([taskId, createdAt])
+  @@map("task_activities")
 }

@@ -39,3 +39,6 @@ apps/api/src/generated/prisma/**/*.map
 # temp
 .tmp
 .cache
+
+# uploaded attachments
+apps/api/uploads/

@@ -141,6 +141,52 @@ export class TaskAccessService {
     );
   }
 
+  async assertTaskExists(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+  ) {
+    return this.findTaskAccessTarget(workspaceId, projectId, taskId);
+  }
+
+  async assertCanContributeToTask(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    currentUserId: string,
+  ) {
+    await this.projectAccessService.assertCanReadProject(
+      workspaceId,
+      projectId,
+      currentUserId,
+    );
+
+    const membership = await this.workspaceAccessService.assertPermission(
+      workspaceId,
+      currentUserId,
+      Permission.TASK_UPDATE,
+    );
+
+    await this.findTaskAccessTarget(workspaceId, projectId, taskId);
+
+    return membership;
+  }
+
+  async isWorkspaceManager(
+    workspaceId: string,
+    currentUserId: string,
+  ): Promise<boolean> {
+    const membership = await this.workspaceAccessService.assertMember(
+      workspaceId,
+      currentUserId,
+    );
+
+    return (
+      membership.role === WorkspaceRole.OWNER ||
+      membership.role === WorkspaceRole.ADMIN
+    );
+  }
+
   async assertAssigneeIsProjectMember(
     projectId: string,
     assigneeId?: string | null,

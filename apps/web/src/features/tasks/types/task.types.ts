@@ -42,6 +42,41 @@ export type Task = {
   updatedAt: string;
   createdBy: TaskUserSummary;
   assignee: TaskUserSummary | null;
+  commentCount?: number;
+  attachmentCount?: number;
+};
+
+export type TaskComment = {
+  id: string;
+  taskId: string;
+  authorId: string;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  author: TaskUserSummary;
+};
+
+export type TaskAttachment = {
+  id: string;
+  taskId: string;
+  uploadedById: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  createdAt: string;
+  uploadedBy: TaskUserSummary;
+};
+
+export type TaskActivity = {
+  id: string;
+  taskId: string;
+  actorId: string;
+  action: string;
+  oldValue: Record<string, unknown> | null;
+  newValue: Record<string, unknown> | null;
+  createdAt: string;
+  actor: TaskUserSummary;
 };
 
 export type WorkspaceTask = Task & {

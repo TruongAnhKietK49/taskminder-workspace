@@ -5,6 +5,7 @@ import { ROUTE_PATHS } from "@/app/routes/route-paths";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { useProjectsQuery } from "@/features/projects/hooks/useProjects";
 import { TaskBoardView } from "@/features/tasks/components/TaskBoardView";
+import { TaskDetailDrawer } from "@/features/tasks/components/TaskDetailDrawer";
 import { TaskFormModal } from "@/features/tasks/components/TaskFormModal";
 import { TaskListView } from "@/features/tasks/components/TaskListView";
 import {
@@ -63,6 +64,7 @@ export function TasksPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<WorkspaceTask | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [defaultModalStatus, setDefaultModalStatus] =
     useState<ActiveTaskStatus>("TODO");
   const [modalError, setModalError] = useState<string | null>(null);
@@ -123,6 +125,10 @@ export function TasksPage() {
   );
   const tasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data]);
   const summary = summaryQuery.data;
+  const selectedTask = useMemo(
+    () => tasks.find((task) => task.id === selectedTaskId) ?? null,
+    [selectedTaskId, tasks],
+  );
 
   const canAssignOthers =
     activeWorkspace?.currentUserRole === "OWNER" ||
@@ -714,6 +720,7 @@ export function TasksPage() {
                 )
               }
               canCreateTask={hasProjects}
+              onOpenDetail={(task) => setSelectedTaskId(task.id)}
               onStatusChange={handleQuickStatusChange}
               onQuickCreate={(status) => handleOpenCreateModal(status)}
               onEdit={handleOpenEditModal}
@@ -730,6 +737,7 @@ export function TasksPage() {
                   activeWorkspace.currentUserRole,
                 )
               }
+              onOpenDetail={(task) => setSelectedTaskId(task.id)}
               onStatusChange={handleQuickStatusChange}
               onEdit={handleOpenEditModal}
               onArchive={handleArchiveTask}
@@ -737,6 +745,29 @@ export function TasksPage() {
           )
         ) : null}
       </section>
+
+      <TaskDetailDrawer
+        workspaceId={activeWorkspaceId}
+        task={selectedTask}
+        currentUserId={currentUser?.id ?? null}
+        isWorkspaceManager={canAssignOthers}
+        canEdit={
+          selectedTask
+            ? canUserEditTask(
+                selectedTask,
+                currentUser?.id,
+                activeWorkspace.currentUserRole,
+              )
+            : false
+        }
+        isUpdatingStatus={
+          Boolean(selectedTask) && updatingTaskId === selectedTask?.id
+        }
+        onClose={() => setSelectedTaskId(null)}
+        onEdit={(task) => handleOpenEditModal(task)}
+        onArchive={(task) => handleArchiveTask(task)}
+        onStatusChange={handleQuickStatusChange}
+      />
 
       <TaskFormModal
         open={isFormOpen}

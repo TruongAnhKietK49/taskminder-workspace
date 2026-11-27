@@ -15,6 +15,7 @@ type TaskCardProps = {
   showProjectBadge: boolean;
   canEdit: boolean;
   isUpdating: boolean;
+  onOpenDetail: (task: WorkspaceTask) => void;
   onStatusChange: (task: WorkspaceTask, status: TaskStatus) => void;
   onEdit: (task: WorkspaceTask) => void;
   onArchive: (task: WorkspaceTask) => void;
@@ -31,6 +32,7 @@ export function TaskCard({
   showProjectBadge,
   canEdit,
   isUpdating,
+  onOpenDetail,
   onStatusChange,
   onEdit,
   onArchive,
@@ -73,14 +75,31 @@ export function TaskCard({
         ) : null}
       </div>
 
-      <h4 className="mt-2.5 line-clamp-2 text-sm font-semibold leading-5 text-slate-950">
-        {task.title}
-      </h4>
+      <button
+        type="button"
+        onClick={() => onOpenDetail(task)}
+        className="mt-2.5 block w-full text-left"
+      >
+        <h4 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-950 hover:text-blue-600">
+          {task.title}
+        </h4>
+      </button>
 
       {task.description ? (
         <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">
           {task.description}
         </p>
+      ) : null}
+
+      {(task.commentCount ?? 0) > 0 || (task.attachmentCount ?? 0) > 0 ? (
+        <div className="mt-2.5 flex items-center gap-3 text-[11px] font-medium text-slate-500">
+          {(task.commentCount ?? 0) > 0 ? (
+            <span>💬 {task.commentCount}</span>
+          ) : null}
+          {(task.attachmentCount ?? 0) > 0 ? (
+            <span>📎 {task.attachmentCount}</span>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">

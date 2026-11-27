@@ -5,10 +5,12 @@ import {
   TaskStatus,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TASK_ACTIVITY_ACTIONS } from './constants/task.constants';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { QueryTasksDto, QueryWorkspaceTasksDto } from './dto/query-tasks.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskAccessService } from './task-access.service';
+import { TaskActivitiesService } from './task-activities.service';
 
 const TASK_SELECT = {
   id: true,
@@ -38,6 +40,12 @@ const TASK_SELECT = {
       avatarUrl: true,
     },
   },
+  _count: {
+    select: {
+      comments: true,
+      attachments: true,
+    },
+  },
 } as const;
 
 type TaskWithDetails = Prisma.TaskGetPayload<{
@@ -64,6 +72,7 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly taskAccessService: TaskAccessService,
+    private readonly taskActivitiesService: TaskActivitiesService,
   ) {}
 
   async create(
@@ -101,6 +110,18 @@ export class TasksService {
         assigneeId: dto.assigneeId ?? null,
       },
       select: TASK_SELECT,
+    });
+
+    await this.taskActivitiesService.record({
+      taskId: task.id,
+      actorId: currentUserId,
+      action: TASK_ACTIVITY_ACTIONS.TASK_CREATED,
+      newValue: {
+        title: task.title,
+        status: task.status,
+        priority: task.priority,
+        assigneeId: task.assigneeId,
+      },
     });
 
     return this.toTaskResponse(task);
@@ -318,6 +339,8 @@ export class TasksService {
       updateData.assigneeId = dto.assigneeId || null;
     }
 
+    const before = await this.findTaskOrThrow(workspaceId, projectId, taskId);
+
     const task = await this.prisma.task.update({
       where: {
         id: taskId,
@@ -325,6 +348,65 @@ export class TasksService {
       data: updateData,
       select: TASK_SELECT,
     });
+
+    if (before.status !== task.status) {
+      await this.taskActivitiesService.record({
+        taskId: task.id,
+        actorId: currentUserId,
+        action: TASK_ACTIVITY_ACTIONS.STATUS_CHANGED,
+        oldValue: { status: before.status },
+        newValue: { status: task.status },
+      });
+    }
+
+    if (before.assigneeId !== task.assigneeId) {
+      await this.taskActivitiesService.record({
+        taskId: task.id,
+        actorId: currentUserId,
+        action: TASK_ACTIVITY_ACTIONS.ASSIGNEE_CHANGED,
+        oldValue: {
+          assigneeId: before.assigneeId,
+          assigneeName: before.assignee?.fullName ?? null,
+        },
+        newValue: {
+          assigneeId: task.assigneeId,
+          assigneeName: task.assignee?.fullName ?? null,
+        },
+      });
+    }
+
+    const oldUpdated: Record<string, string | null> = {};
+    const newUpdated: Record<string, string | null> = {};
+
+    if (before.title !== task.title) {
+      oldUpdated.title = before.title;
+      newUpdated.title = task.title;
+    }
+    if (before.description !== task.description) {
+      oldUpdated.description = before.description;
+      newUpdated.description = task.description;
+    }
+    if (before.priority !== task.priority) {
+      oldUpdated.priority = before.priority;
+      newUpdated.priority = task.priority;
+    }
+    if (
+      (before.dueDate?.toISOString() ?? null) !==
+      (task.dueDate?.toISOString() ?? null)
+    ) {
+      oldUpdated.dueDate = before.dueDate?.toISOString() ?? null;
+      newUpdated.dueDate = task.dueDate?.toISOString() ?? null;
+    }
+
+    if (Object.keys(newUpdated).length > 0) {
+      await this.taskActivitiesService.record({
+        taskId: task.id,
+        actorId: currentUserId,
+        action: TASK_ACTIVITY_ACTIONS.TASK_UPDATED,
+        oldValue: oldUpdated,
+        newValue: newUpdated,
+      });
+    }
 
     return this.toTaskResponse(task);
   }
@@ -350,6 +432,13 @@ export class TasksService {
         status: TaskStatus.ARCHIVED,
       },
       select: TASK_SELECT,
+    });
+
+    await this.taskActivitiesService.record({
+      taskId: task.id,
+      actorId: currentUserId,
+      action: TASK_ACTIVITY_ACTIONS.TASK_ARCHIVED,
+      newValue: { status: TaskStatus.ARCHIVED },
     });
 
     return this.toTaskResponse(task);
@@ -457,6 +546,8 @@ export class TasksService {
       updatedAt: task.updatedAt,
       createdBy: task.createdBy,
       assignee: task.assignee,
+      commentCount: task._count.comments,
+      attachmentCount: task._count.attachments,
     };
   }
 
